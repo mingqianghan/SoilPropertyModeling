@@ -8,10 +8,11 @@ mag_LC = [];
 phs_LC = [];
 
 
+
 % Specify the folder where the files live.
 myFolder = 'Nitrogen\R2\SC'; 
 % Check to make sure that folder actually exists.  Warn user if it doesn't.
-if ~isdir(myFolder)
+if ~isfolder(myFolder)
   errorMessage = sprintf('Error: The following folder does not exist:\n%s', myFolder);
   uiwait(warndlg(errorMessage));
   return;
