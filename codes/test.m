@@ -12,7 +12,6 @@ N_gt_path =fullfile(mainpath, N_gt_subpath);
 disp(wc_gt_path)
 disp(N_gt_path)
 
-data = readtable(wc_gt_path, 'Sheet', 'R3');
-
-
+data = readtable(wc_gt_path, 'VariableNamingRule', 'preserve', 'Sheet', 'R3');
+find(strcmp(data.("Cable Type"), 'SC'))
 
