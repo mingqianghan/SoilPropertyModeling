@@ -74,5 +74,5 @@ lab_expcbtype = 'SC';
 wc_gt_subpath = 'Lab\WC_Calibration.xlsx';
 N_gt_subpath = 'Lab\Nitrogen_Calibration.xlsx';
 
-[mag, phs, gt] = load_data(mainpath, lab_exptype, lab_expnum, lab_expcbtype, ...
+[mag, phs, gt] = load_lab_data(mainpath, lab_exptype, lab_expnum, lab_expcbtype, ...
                    wc_gt_subpath);
