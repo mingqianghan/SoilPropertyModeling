@@ -2,18 +2,11 @@ clc
 clear
 close all
 
-% wc_gt_subpath = 'Lab\WC_Calibration.xlsx';
-N_gt_subpath = 'Lab\Nitrogen_Calibration.xlsx';
-% 
-% [mag, phs, gt] = load_lab_data(mainpath, lab_exptype, lab_expnum, lab_expcbtype, ...
-%                    N_gt_subpath);
-% 
-% 
-mainpath = 'C:\Users\mingqiang\OneDrive - Kansas State University\K-state Research\Soil sensor\Data';
+year = '24';
+mainpath = 'C:\Users\mingqiang\OneDrive - Kansas State University\K-state Research\Soil sensor\Data\UG nodes';
+plot_name = 'LP';    % EP (Early Planting) or LP (Late Planting)
+subplot_name = 'WN'; % WN (With Nitrogen) or ON (Without Nitrogen)
+Cable_Type = 'LC';   % LC (Long Cable) or SC (Short Cable)
 
-% Define parameters
-lab_exptype = 'Nitrogen';  
-
-results = access_all_lab_data(mainpath, lab_exptype, N_gt_subpath);
-
-fre = calculate_frequencies_Hz();
+[data, gt] = load_field_data(year, mainpath, plot_name, ...
+                             subplot_name, Cable_Type);
