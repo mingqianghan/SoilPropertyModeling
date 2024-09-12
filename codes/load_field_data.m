@@ -1,5 +1,6 @@
-function [data, gt] = load_field_data(year, mainpath, plot_name, ...
-                                      subplot_name, Cable_Type)
+function [data, gt, data_size] = load_field_data(year, mainpath, ...
+                                                 plot_name, ...
+                                                 subplot_name, Cable_Type)
 % Function to load field data
 % 
 % Author: Mingqiang Han
@@ -28,6 +29,8 @@ function [data, gt] = load_field_data(year, mainpath, plot_name, ...
 %   gt   - Struct containing ground truth data including 
 %                 soil moisture (VWC), nitrogen levels (NO3, NH4), 
 %                 and total nitrogen (totN).
+%   data_size - double containing the number of measurements 
+%                      in the data structure.
 
     % Fixed size of frequency points
     fre_size = 1110;

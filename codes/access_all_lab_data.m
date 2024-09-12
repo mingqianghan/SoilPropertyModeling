@@ -1,5 +1,5 @@
 function results = access_all_lab_data(mainpath, lab_exptype, gt_subpath)
-% Author: Mingqiang
+% Author: Mingqiang Han
 % Date: September 10, 2024
 %
 % Description:
@@ -44,11 +44,17 @@ for i = 1:length(lab_expnum)
         current_expcbtype = lab_expcbtype{j};  % Current cable type (e.g., 'SC')
         
         % Display the current experiment combination being processed
-        fprintf('Processing experiment %s with cable type %s...\n', current_expnum, current_expcbtype);
-        
+        fprintf('Experiment(%s), Cable type(%s) -> ', ...
+                current_expnum, current_expcbtype);
+
         % Call the load_lab_data function to load magnitude, phase, and ground truth data
-        [mag, phs, gt] = load_lab_data(mainpath, lab_exptype, current_expnum, ...
-                                       current_expcbtype, gt_subpath);
+        [mag, phs, gt, data_size] = load_lab_data(mainpath, ...
+                                                  lab_exptype, ...
+                                                  current_expnum, ...
+                                                  current_expcbtype, ...
+                                                  gt_subpath);
+        % Display the number of samples found for this configuration
+        fprintf('Found %3d samples.\n', data_size);
         
         % Store the results for the current combination in the structure array
         results(idx).expnum = current_expnum;       % Store experiment repeat number

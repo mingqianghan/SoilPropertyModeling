@@ -1,5 +1,5 @@
 function fre = calculate_frequencies_Hz()
-% Author: Mingqiang
+% Author: Mingqiang Han
 % Date: September 10, 2024
 %
 % Description:
