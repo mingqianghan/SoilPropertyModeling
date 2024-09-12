@@ -68,6 +68,6 @@ function plot_data(frequencies, data, plot_idx, title_str, legend_values, ylabel
     ax = gca;  
     ax.XAxis.FontSize = fontsize; 
     ax.YAxis.FontSize = fontsize;  
-    set(gca,'XScale','log')  % Ensure X-axis is logarithmic
+    set(gca,'XScale','log') 
     hold off;
 end
