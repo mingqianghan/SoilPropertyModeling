@@ -7,7 +7,7 @@ function results = access_all_field_data(year, mainpath)
 % nitrogen type, and cable type). It loops through predefined combinations
 % of plot types, nitrogen types, and cable types to collect data and store
 % the results in a structure array.
-
+%
 % Input:
 %   - year: The year for which the data is being accessed (string).
 %   - mainpath: The main directory path 

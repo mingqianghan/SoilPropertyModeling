@@ -1,8 +1,6 @@
 function [data, gt, data_size] = load_field_data(year, mainpath, ...
                                                  plot_name, ...
                                                  subplot_name, Cable_Type)
-% Function to load field data
-% 
 % Author: Mingqiang Han
 % Date: September 12, 2024
 % 

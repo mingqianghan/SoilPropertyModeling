@@ -3,16 +3,17 @@ function fre = calculate_frequencies_Hz()
 % Date: September 10, 2024
 %
 % Description:
-% This function calculates a set of frequencies in Hz based on three different 
-% index ranges. The function generates 1110 frequency values, where:
+% This function calculates a set of frequencies in Hz based on 
+% three different index ranges. The function generates 1110 
+% frequency values, where:
 %   - For i <= 10, frequencies are calculated as 100 * i.
-%   - For 10 < i <= 110, frequencies are calculated using a logarithmic scale 
-%     from 1000 Hz.
+%   - For 10 < i <= 110, frequencies are calculated using 
+%                        a logarithmic scale from 1000 Hz.
 %   - For i > 110, frequencies are calculated using a logarithmic scale 
 %     from 1 MHz (1e6 Hz).
 %
 % Outputs:
-%   fre - (array) A 1x1110 array containing the calculated frequencies in Hz.
+%   fre - (array) A 1x1110 array containing the calculated frequencies.
 
 % Define the size of the frequency array (1110 frequency points)
 fre_size = 1110;
