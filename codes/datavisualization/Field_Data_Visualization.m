@@ -65,9 +65,9 @@ function plot_data(frequencies, data, plot_idx, title_str, legend_values, ylabel
     title(lgd, {'VWC - NO3 - NH4', '   %   - ppm - ppm'});
     xlabel('frequency (Hz)', 'FontSize', fontsize);
     ylabel(ylabel_str, 'FontSize', fontsize);
-    ax = gca;  % Get the current axis
-    ax.XAxis.FontSize = fontsize;  % Set X-axis tick label size
-    ax.YAxis.FontSize = fontsize;  % Set Y-axis tick label size
+    ax = gca;  
+    ax.XAxis.FontSize = fontsize; 
+    ax.YAxis.FontSize = fontsize;  
     set(gca,'XScale','log')  % Ensure X-axis is logarithmic
     hold off;
 end
