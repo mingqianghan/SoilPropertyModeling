@@ -18,6 +18,7 @@ fre = calculate_frequencies_Hz();
 % Experiment and cable types
 cur_expnum = {'R1', 'R2', 'R3'};
 cur_cabletype = {'SC', 'LC'};
+Predictors = {'Mag', 'Phs', 'MaP'};
 
 % Loop through experimental setups and cable types
 for i = 1:length(cur_expnum)
