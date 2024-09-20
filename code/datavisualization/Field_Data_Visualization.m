@@ -3,7 +3,7 @@ clear
 close all
 
 year = '24';
-mainpath = 'C:\Users\mingqiang\OneDrive - Kansas State University\K-state Research\Soil sensor\Data\UG nodes';
+mainpath = 'data\UG nodes';
 all_data = access_all_field_data(year, mainpath);
 fre = calculate_frequencies_Hz();
 

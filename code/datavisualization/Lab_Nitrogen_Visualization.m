@@ -3,7 +3,7 @@ clear
 close all
 
 % file paths
-mainpath = 'C:\Users\mingqiang\OneDrive - Kansas State University\K-state Research\Soil sensor\Data';
+mainpath = 'data';
 N_gt_subpath = 'Lab\Nitrogen_Calibration.xlsx';
 
 % Define parameters
