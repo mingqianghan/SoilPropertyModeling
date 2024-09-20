@@ -3,18 +3,14 @@ clear;
 close all;
 
 % File paths
-mainpath = 'C:\Users\mingqiang\OneDrive - Kansas State University\K-state Research\Soil sensor\Data';
+mainpath = 'data';
 WC_gt_subpath = 'Lab\WC_Calibration.xlsx';
-
 
 % Define parameters
 lab_exptype = 'WC';  
 
 % Access lab data
 data = access_all_lab_data(mainpath, lab_exptype, WC_gt_subpath);
-
-% Frequency calculation
-fre = calculate_frequencies_Hz();
 
 % Experiment and cable types
 cur_expnum = {'R1', 'R2', 'R3'};
