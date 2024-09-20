@@ -13,8 +13,8 @@ for k = 1:num_max_vr
 
     if strcmp(rg_model, 'LR')
         mdl = fitlm(train_x(:, fea_indices), train_y);
-    else
-
+    elseif strcmp(rg_model, 'SVM')
+        mdl = fitrsvm(train_x(:, fea_indices), train_y);
     end
     
     % Validate the model
