@@ -28,7 +28,7 @@ function write_data = check_model(results_file_path, ...
 %                         in the file.
 %
 % Author: Mingqiang Han
-% Date: 09-24-24
+% Date: 09-20-24
 % -------------------------------------------------------------------------
 
 % Ensure the results directory exists
