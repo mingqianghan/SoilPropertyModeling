@@ -3,10 +3,7 @@ function [mag, phs, gt, num_samples] = load_lab_data(mainpath, ...
                                                      lab_expnum, ...
                                                      lab_expcbtype, ...
                                                      gt_subpath)
-% Author: Mingqiang Han
-% Date: September 10, 2024
-%
-% Description:
+% -------------------------------------------------------------------------
 % The 'load_lab_data' function reads laboratory experimental data related 
 % to either nitrogen or water content (WC) experiments. It loads the ground 
 % truth data for the specified experiment type and retrieves the 
@@ -32,6 +29,10 @@ function [mag, phs, gt, num_samples] = load_lab_data(mainpath, ...
 %                  levels, depending on the experiment type.
 %   num_samples - (double) the number of measurements 
 %                          in the data structure.
+%
+% Author: Mingqiang Han
+% Date: 09-10-24
+% -------------------------------------------------------------------------
 
 
 % Set the size of frequency data (there are 1110 frequency points).

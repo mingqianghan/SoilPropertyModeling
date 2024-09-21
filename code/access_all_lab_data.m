@@ -1,8 +1,5 @@
 function results = access_all_lab_data(mainpath, lab_exptype, gt_subpath)
-% Author: Mingqiang Han
-% Date: September 10, 2024
-%
-% Description:
+% -------------------------------------------------------------------------
 % This function processes data from laboratory experiments related to 
 % either nitrogen or water content (WC). It loops through all combinations
 % of experiment repeat numbers and cable types, loads the corresponding 
@@ -28,6 +25,9 @@ function results = access_all_lab_data(mainpath, lab_exptype, gt_subpath)
 %       - phs        : Phase response data for each sample
 %       - gt         : Ground truth data 
 %                      (water content, nitrogen measurements).
+% Author: Mingqiang Han
+% Date: 09-10-24
+% -------------------------------------------------------------------------
 
 % Define the list of experiment repeat numbers and cable types
 lab_expnum = {'R1', 'R2', 'R3'};     % Experiment numbers 

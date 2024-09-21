@@ -1,7 +1,5 @@
 function results = access_all_field_data(year, mainpath)
-% Author: Mingqiang Han
-% Date: September 12, 2024
-%
+% -------------------------------------------------------------------------
 % This function retrieves and organizes field data for a given year, 
 % mainpath, and various experimental configurations (plot type, 
 % nitrogen type, and cable type). It loops through predefined combinations
@@ -24,6 +22,10 @@ function results = access_all_field_data(year, mainpath)
 %       - Numsamples: The number of samples found for this configuration.
 %       - data: The data collected from the field for this configuration.
 %       - gt: Ground truth data corresponding to the field data.
+%
+% Author: Mingqiang Han
+% Date: 09-12-24
+% -------------------------------------------------------------------------
 
 % Define possible plot types, nitrogen types, and cable types
 plot_name = {'EP', 'LP'};    % EP (Early Planting) or LP (Late Planting)

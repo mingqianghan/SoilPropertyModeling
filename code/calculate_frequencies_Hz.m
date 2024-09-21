@@ -1,8 +1,5 @@
 function fre = calculate_frequencies_Hz()
-% Author: Mingqiang Han
-% Date: September 10, 2024
-%
-% Description:
+% -------------------------------------------------------------------------
 % This function calculates a set of frequencies in Hz based on 
 % three different index ranges. The function generates 1110 
 % frequency values, where:
@@ -14,6 +11,9 @@ function fre = calculate_frequencies_Hz()
 %
 % Outputs:
 %   fre - (array) A 1x1110 array containing the calculated frequencies.
+% Author: Mingqiang Han
+% Date: 09-10-24
+% -------------------------------------------------------------------------
 
 % Define the size of the frequency array (1110 frequency points)
 fre_size = 1110;
