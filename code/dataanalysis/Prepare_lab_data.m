@@ -95,6 +95,16 @@ switch parameter
         % validation and training datasets
         val_y = target_extraction(val_data, 'WC_Prepared');
         train_y = target_extraction(train_data, 'WC_Prepared');
+    case 'Urea'
+        % Extract 'WC_Prepared' target for
+        % validation and training datasets
+        val_y = target_extraction(val_data, 'Urea');
+        train_y = target_extraction(train_data, 'Urea');
+    case 'WC'
+        % Extract 'WC_Prepared' target for
+        % validation and training datasets
+        val_y = target_extraction(val_data, 'WC');
+        train_y = target_extraction(train_data, 'WC');
 end
 
 % Flatten the cell arrays of target values into matrices

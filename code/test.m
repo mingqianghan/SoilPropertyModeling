@@ -3,118 +3,53 @@ clear;
 close all;
 
 % File paths
-mainpath = 'C:\Users\mingqiang\OneDrive - Kansas State University\K-state Research\Soil sensor\Data';
-WC_gt_subpath = 'Lab\WC_Calibration.xlsx';
+year = '24';
+mainpath = 'data\UG nodes';
 
-% Define parameters
-lab_exptype = 'WC';  
 
-% Access lab data
-data = access_all_lab_data(mainpath, lab_exptype, WC_gt_subpath);
+% results_file_path = 'results\lab\wc';
+% results_file_name = 'existing_model.csv';
+% 
+% % Define parameters
+% lab_exptype = 'WC';  
+% cur_expnum = {'R1', 'R2', 'R3'};
+% cur_cabletype = {'SC', 'LC'};
+% Predictors = {'Mag', 'Phs', 'MaP'}; 
+% num_max_vr = 20;
+% rg_model = 'LR';  % LR, SVM
+% vr_selection = 'MRMR';
 
-% Frequency calculation
-fre = calculate_frequencies_Hz();
+num_max_vr = 20;
+rg_model = 'LR';  % LR, SVM
+vr_selection = 'MRMR';
 
-% Experiment and cable types
-cur_expnum = {'R1', 'R2', 'R3'};
-cur_cabletype = {'SC', 'LC'};
-Predictors = {'Mag', 'Phs', 'MaP'};
+output_label = 'none';
+write_data = false;
+results_file_path = 'none';
 
-% Loop through experimental setups and cable types
-for i = 1:length(cur_expnum)
-    % Split validation and training data based on experiment number
-    val_idx = strcmp({data.expnum}, cur_expnum{i});
-    val_data_split = data(val_idx);
-    train_data_split = data(~val_idx);
-    
-    for j = 1:length(cur_cabletype)
-        % Further split based on cable type
-        val_data = val_data_split(strcmp({val_data_split.cabletype}, cur_cabletype{j}));
-        train_data = train_data_split(strcmp({train_data_split.cabletype}, cur_cabletype{j}));
 
-        % Extract features and target for validation and training sets
-        val_x = vertcat(arrayfun(@(x) x.mag(:, 10:end), val_data, 'UniformOutput', false));
-        train_x = vertcat(arrayfun(@(x) x.mag(:, 10:end), train_data, 'UniformOutput', false));
+% year = '24';
+% mainpath = 'data\UG nodes';
+all_data = access_all_field_data(year, mainpath);
 
-        val_x = vertcat(val_x{:});
-        train_x = vertcat(train_x{:});
+cur_cabletype = 'LC';
+matches = false(1, length(all_data));
 
-        % Extract the ground truth (WC_Calculated) for val and train sets
-        val_y = vertcat(arrayfun(@(x) x.gt.WC_Calculated, val_data, 'UniformOutput', false));
-        train_y = vertcat(arrayfun(@(x) x.gt.WC_Calculated, train_data, 'UniformOutput', false));
+for i = 1:length(all_data)
 
-        val_y = vertcat(val_y{:});
-        train_y = vertcat(train_y{:});
-
-        % Feature selection using MRMR
-        [score_idx, scores] = fsrmrmr(train_x, train_y);
-
-        % Train the model using the selected features
-        best_r_square = -inf;
-        for k = 1:10
-            fea_indices = score_idx(1:k);
-            mdl = fitlm(train_x(:, fea_indices), train_y);
-
-            % Validate the model
-            yPred_val = predict(mdl, val_x(:, fea_indices));
-            [r_square, rmse, mae] = model_evaluation(yPred_val, val_y);
-            
-            % Track the best model
-            if r_square > best_r_square
-                best_r_square = r_square;
-                best_rmse = rmse;
-                best_mae = mae;
-                best_var_num = k;
-                best_mdl = mdl;
-            end
-        end
-
-        % Evaluate the model on the training set
-        best_fea_indices = score_idx(1:best_var_num);
-        yPred_train = predict(best_mdl, train_x(:, best_fea_indices));
-        [train_r_square, train_rmse, train_mae] = model_evaluation(yPred_train, train_y);
-
-        % Reevaluate on validation set with the best model
-        yPred_val = predict(best_mdl, val_x(:, best_fea_indices));
-
-        % Display results
-        fprintf('Cable_Type(%s), Val_Set(%s), Var_Num(%d): \n', cur_cabletype{j}, cur_expnum{i}, best_var_num);
-        fprintf('Train -> rsquare: %.2f, rmse: %.2f, mae: %.2f\n', train_r_square, train_rmse, train_mae);
-        fprintf('Val   -> rsquare: %.2f, rmse: %.2f, mae: %.2f\n', best_r_square, best_rmse, best_mae);
-
-        % Prepare labels for saving results
-        combined_label = strcat('MR2LR_Mg_', cur_cabletype{j}, '_', cur_expnum{i});
-        combined_base = strcat('MR2_Mg_', cur_cabletype{j}, '_', cur_expnum{i});
-
-        % Append performance results to the results table
-        new_data = table({combined_label}, best_var_num, train_r_square, ...
-                         train_rmse, train_mae, best_r_square, best_rmse, best_mae, ...
-            'VariableNames', {'Label', 'Var_Num', 'Train_R2', 'Train_RMSE', 'Train_MAE', 'Val_R2', 'Val_RMSE', 'Val_MAE'});
-
-        
-        train_labels = strcat(combined_label, '_train_gt');
-        train_gt_data = table({train_labels}, train_y');
-        
-        train_labels = strcat(combined_label, '_train_pred');
-        train_pred_data = table({train_labels}, yPred_train');
-
-        val_labels = strcat(combined_label, '_val_gt');
-        val_gt_data = table({val_labels}, val_y');
-        
-        val_labels = strcat(combined_label, '_val_pred');
-        val_pred_data = table({val_labels}, yPred_val');
-
-        % Frequency ranking and scores
-        fre_rank = table({strcat(combined_base, '_idx')}, score_idx);
-        fre_score = table({strcat(combined_base, '_score')}, scores);
-
-        % Save results to CSV files
-        writetable(new_data, 'results\WC_lab_performance.csv', 'WriteMode', 'append');
-        writetable(train_gt_data, 'results\WC_lab_predictions.csv', 'WriteMode', 'append');
-        writetable(train_pred_data, 'results\WC_lab_predictions.csv', 'WriteMode', 'append');
-        writetable(val_gt_data, 'results\WC_lab_predictions.csv', 'WriteMode', 'append');
-        writetable(val_pred_data, 'results\WC_lab_predictions.csv', 'WriteMode', 'append');
-        writetable(fre_rank, 'results\WC_lab_fre_score.csv', 'WriteMode', 'append');
-        writetable(fre_score, 'results\WC_lab_fre_score.csv', 'WriteMode', 'append');
+    if strcmp(all_data(i).Cabletype,cur_cabletype) && strcmp(all_data(i).Plotname,'LP')
+          matches(i) = true;  % Mark the index where the match is found 
     end
 end
+
+% After the loop, extract the matched structs using the logical index
+matched_data = all_data(4);
+train_ratio = 0.9;
+
+[data_x_valid, data_y_valid] = extract_and_clean_data(matched_data, 'Mag', 'VWC');
+[train_x, train_y, val_x, val_y] = train_val_split(data_x_valid, data_y_valid, train_ratio);
+
+[best_mdl, best_var_num, score_idx, scores] = MRMR_based_models(train_x, train_y, val_x, val_y, num_max_vr, rg_model);
+save_model_performance(best_mdl, best_var_num, score_idx, scores, train_x, train_y, val_x, val_y, vr_selection, rg_model, output_label, write_data, results_file_path);
+
+

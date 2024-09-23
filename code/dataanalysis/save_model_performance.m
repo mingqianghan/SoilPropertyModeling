@@ -98,5 +98,9 @@ if write_data
     path_name = fullfile(file_path, file_name);
     writetable(fre_rank, path_name, 'WriteMode', 'append');
     writetable(fre_score, path_name, 'WriteMode', 'append');
+
+    model_name = strcat(file_name_base, '_', output_label, '.mat');
+    full_model_path = fullfile(file_path, model_name);
+    save(full_model_path, 'mdl');
 end
 end

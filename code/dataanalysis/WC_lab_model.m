@@ -14,7 +14,7 @@ cur_expnum = {'R1', 'R2', 'R3'};
 cur_cabletype = {'SC', 'LC'};
 Predictors = {'Mag', 'Phs', 'MaP'}; 
 num_max_vr = 20;
-rg_model = 'SVM';  % LR, SVM
+rg_model = 'LR';  % LR, SVM
 vr_selection = 'MRMR';
 
 % Load data
