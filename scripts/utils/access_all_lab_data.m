@@ -61,12 +61,12 @@ for i = 1:length(lab_expnum)
         % Display the number of samples found for this configuration
         fprintf('Found %3d samples.\n', data_size);
         
-        % Store the results for the current combination in the structure array
-        results(idx).expnum = current_expnum;       % Store exp. number
-        results(idx).Cabletype = current_expcbtype; % Store cable type
-        results(idx).Numsamples = data_size;        % Number of samples found
-        results(idx).data = data;                   % Lab data
-        results(idx).gt = gt;                       % Store gt. data
+        % Store the results in the structure array
+        results(idx).expnum = current_expnum;      
+        results(idx).Cabletype = current_expcbtype;
+        results(idx).Numsamples = data_size;       
+        results(idx).data = data;                   
+        results(idx).gt = gt;                     
         
         % Increment the index for the next entry in the structure array
         idx = idx + 1;

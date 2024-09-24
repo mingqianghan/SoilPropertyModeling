@@ -34,7 +34,6 @@ function [data, gt, num_samples] = load_lab_data(mainpath, ...
 % Date: 09-10-24
 % -------------------------------------------------------------------------
 
-
 % Set the size of frequency data (there are 1110 frequency points).
 fre_size = 1110;
 
