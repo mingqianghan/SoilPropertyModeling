@@ -44,12 +44,12 @@ for i = 1:length(data)
     % Create a semilogx plot with different colors for each line
     hold on;
     for j = 1:length(data(i).gt.WC_Prepared)
-        semilogx(fre, data(i).mag(j, :), 'LineWidth', 2, 'Color', colors(j, :));
+        semilogx(fre, data(i).data.mag(j, :), 'LineWidth', 2, 'Color', colors(j, :));
     end
     hold off;
     
     % Title with fontsize
-    title([data(i).expnum '-' data(i).cabletype '-' 'Magnitude'], 'FontSize', fontsize);
+    title([data(i).expnum '-' data(i).Cabletype '-' 'Magnitude'], 'FontSize', fontsize);
     
     % Create the legend with formatted values and title
     legend_values = arrayfun(@(x) sprintf('%.3f', x), data(i).gt.WC_Prepared, 'UniformOutput', false);
@@ -76,12 +76,12 @@ for i = 1:length(data)
     % Create a semilogx plot with different colors for each line
     hold on;
     for j = 1:length(data(i).gt.WC_Prepared)
-        semilogx(fre, data(i).phs(j, :), 'LineWidth', 2, 'Color', colors(j, :));
+        semilogx(fre, data(i).data.phs(j, :), 'LineWidth', 2, 'Color', colors(j, :));
     end
     hold off;
     
     % Title with fontsize
-    title([data(i).expnum '-' data(i).cabletype '-' 'Phase'], 'FontSize', fontsize);
+    title([data(i).expnum '-' data(i).Cabletype '-' 'Phase'], 'FontSize', fontsize);
     
     % Create the legend with formatted values and title
     legend_values = arrayfun(@(x) sprintf('%.3f', x), data(i).gt.WC_Prepared, 'UniformOutput', false);

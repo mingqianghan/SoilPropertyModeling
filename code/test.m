@@ -43,11 +43,14 @@ for i = 1:length(all_data)
 end
 
 % After the loop, extract the matched structs using the logical index
-matched_data = all_data(4);
+matched_data = all_data(matches);
 train_ratio = 0.9;
 
-[data_x_valid, data_y_valid] = extract_and_clean_data(matched_data, 'Mag', 'VWC');
-[train_x, train_y, val_x, val_y] = train_val_split(data_x_valid, data_y_valid, train_ratio);
+[data_x_valid, data_y_valid, data_category] = extract_and_clean_data(matched_data, 'field', 'Mag', 'VWC');
+[train_x, train_y, val_x, val_y] = train_val_split(data_x_valid, data_y_valid, ...
+                                                   'category', 'val_categories', 'LP_ON' , 'category_array', data_category);
+% [train_x, train_y, val_x, val_y] = train_val_split(data_x_valid, data_y_valid, ...
+%                                                    'category', 'val_categories', {'LP_ON'} , 'category_array', data_category);
 
 [best_mdl, best_var_num, score_idx, scores] = MRMR_based_models(train_x, train_y, val_x, val_y, num_max_vr, rg_model);
 save_model_performance(best_mdl, best_var_num, score_idx, scores, train_x, train_y, val_x, val_y, vr_selection, rg_model, output_label, write_data, results_file_path);

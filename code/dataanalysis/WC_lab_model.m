@@ -32,35 +32,96 @@ numPredictors = length(Predictors);
 numExp = length(cur_expnum);
 numCable = length(cur_cabletype);
 
+
+
 % Iterate over predictors, experiment setups, and cable types
 for k = 1:numPredictors
     fprintf('\nVS Method: %s, Regression model: %s\n', vr_selection, rg_model);
     fprintf('Features: %s\n', Predictors{k});
-
-    % Loop through experiments and cable types
-    for i = 1:numExp
-        % Split validation and training data by experiment number
-        val_idx = strcmp({data.expnum}, cur_expnum{i});
-        val_data_split = data(val_idx);
-        train_data_split = data(~val_idx);
-
-        for j = 1:numCable
-            % Split validation and training data by cable type
-            val_data = val_data_split(strcmp({val_data_split.cabletype}, cur_cabletype{j}));
-            train_data = train_data_split(strcmp({train_data_split.cabletype}, cur_cabletype{j}));
-
-            % Generate output label
-            output_label = strcat(Predictors{k}, '_', cur_cabletype{j}, '_', cur_expnum{i});
-
-            % Prepare data for training and validation
-            [train_x, train_y, val_x, val_y] = Prepare_lab_data(train_data, val_data, Predictors{k}, 'WC_Prepared');
-
-            % Train model using MRMR-based feature selection
+    
+    for i = 1:numCable
+        matches = arrayfun(@(x) strcmp(x.Cabletype, cur_cabletype{i}), data);
+        [data_x_valid, data_y_valid, data_category] = extract_and_clean_data( data(matches), 'lab', Predictors{k}, 'WC_Calculated');
+        for j = 1:numExp
+            [train_x, train_y, val_x, val_y] = train_val_split(data_x_valid, data_y_valid, ...
+                                                   'category', 'val_categories', cur_expnum{j}, 'category_array', data_category);
             [best_mdl, best_var_num, score_idx, scores] = MRMR_based_models(train_x, train_y, val_x, val_y, num_max_vr, rg_model);
-            fprintf('Cable_Type(%s), Val_Set(%s), Var_Num(%d): \n', cur_cabletype{j}, cur_expnum{i}, best_var_num);
+            output_label = strcat(Predictors{k}, '_', cur_cabletype{i}, '_', cur_expnum{j});
+            save_model_performance(best_mdl, best_var_num, score_idx, scores, train_x, train_y, val_x, val_y, vr_selection, rg_model, output_label, write_data, results_file_path)
 
-            % Save model performance
-            save_model_performance(best_mdl, best_var_num, score_idx, scores, train_x, train_y, val_x, val_y, vr_selection, rg_model, output_label, write_data, results_file_path);
         end
+        
     end
+    % for i = 1:length(data)
+    %     matches = arrayfun(@(x) strcmp(x.Cabletype, cur_cabletype)), data);
+    % 
+    %     if strcmp(data(i).Cabletype, cur_cabletype)
+    %         data(i)
+    %        [data_x_valid, data_y_valid, data_category] = extract_and_clean_data(matched_data, 'Mag', 'VWC');
+    %     end
+    % end
+
+    % % Loop through experiments and cable types
+    % for i = 1:numExp
+    %     % Split validation and training data by experiment number
+    %     val_idx = strcmp({data.expnum}, cur_expnum{i});
+    %     val_data_split = data(val_idx);
+    %     train_data_split = data(~val_idx);
+    % 
+    %     for j = 1:numCable
+    %         % Split validation and training data by cable type
+    %         val_data = val_data_split(strcmp({val_data_split.Cabletype}, cur_cabletype{j}));
+    %         train_data = train_data_split(strcmp({train_data_split.Cabletype}, cur_cabletype{j}));
+    % 
+    %         % Generate output label
+    %         output_label = strcat(Predictors{k}, '_', cur_cabletype{j}, '_', cur_expnum{i});
+    % 
+    %         [data_x_valid, data_y_valid] = extract_and_clean_data(all_data, predictors, parameter);
+    % 
+    %         % Prepare data for training and validation
+    %         [train_x, train_y, val_x, val_y] = Prepare_lab_data(train_data, val_data, Predictors{k}, 'WC_Prepared');
+    % 
+    %         % Train model using MRMR-based feature selection
+    %         [best_mdl, best_var_num, score_idx, scores] = MRMR_based_models(train_x, train_y, val_x, val_y, num_max_vr, rg_model);
+    %         fprintf('Cable_Type(%s), Val_Set(%s), Var_Num(%d): \n', cur_cabletype{j}, cur_expnum{i}, best_var_num);
+    % 
+    %         % Save model performance
+    %         save_model_performance(best_mdl, best_var_num, score_idx, scores, train_x, train_y, val_x, val_y, vr_selection, rg_model, output_label, write_data, results_file_path);
+    %     end
+    % end
 end
+
+% % Iterate over predictors, experiment setups, and cable types
+% for k = 1:numPredictors
+%     fprintf('\nVS Method: %s, Regression model: %s\n', vr_selection, rg_model);
+%     fprintf('Features: %s\n', Predictors{k});
+% 
+%     % Loop through experiments and cable types
+%     for i = 1:numExp
+%         % Split validation and training data by experiment number
+%         val_idx = strcmp({data.expnum}, cur_expnum{i});
+%         val_data_split = data(val_idx);
+%         train_data_split = data(~val_idx);
+% 
+%         for j = 1:numCable
+%             % Split validation and training data by cable type
+%             val_data = val_data_split(strcmp({val_data_split.Cabletype}, cur_cabletype{j}));
+%             train_data = train_data_split(strcmp({train_data_split.Cabletype}, cur_cabletype{j}));
+% 
+%             % Generate output label
+%             output_label = strcat(Predictors{k}, '_', cur_cabletype{j}, '_', cur_expnum{i});
+% 
+%             [data_x_valid, data_y_valid] = extract_and_clean_data(all_data, predictors, parameter);
+% 
+%             % Prepare data for training and validation
+%             [train_x, train_y, val_x, val_y] = Prepare_lab_data(train_data, val_data, Predictors{k}, 'WC_Prepared');
+% 
+%             % Train model using MRMR-based feature selection
+%             [best_mdl, best_var_num, score_idx, scores] = MRMR_based_models(train_x, train_y, val_x, val_y, num_max_vr, rg_model);
+%             fprintf('Cable_Type(%s), Val_Set(%s), Var_Num(%d): \n', cur_cabletype{j}, cur_expnum{i}, best_var_num);
+% 
+%             % Save model performance
+%             save_model_performance(best_mdl, best_var_num, score_idx, scores, train_x, train_y, val_x, val_y, vr_selection, rg_model, output_label, write_data, results_file_path);
+%         end
+%     end
+% end

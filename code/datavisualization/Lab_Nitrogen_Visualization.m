@@ -48,12 +48,12 @@ for i = 1:length(data)
         % Create a semilogx plot with different colors for each line
         hold on;
         for j = 1:N_levels
-            semilogx(fre, data(i).mag(WC_idx(j,k), :), 'LineWidth', 2, 'Color', colors(j, :));
+            semilogx(fre, data(i).data.mag(WC_idx(j,k), :), 'LineWidth', 2, 'Color', colors(j, :));
         end
         hold off;
     
         % Title with fontsize
-        title([data(i).expnum '-' data(i).cabletype '-' 'VWC:' num2str(data(i).gt.WC(WC_idx(1,k))) '-' 'Magnitude'], ...
+        title([data(i).expnum '-' data(i).Cabletype '-' 'VWC:' num2str(data(i).gt.WC(WC_idx(1,k))) '-' 'Magnitude'], ...
               'FontSize', fontsize);
     
         % Create the legend with formatted values and title
@@ -79,17 +79,17 @@ for i = 1:length(data)
     hold on;
     for j = 1:WC_levels*N_levels
         if j<=10
-            semilogx(fre, data(i).mag(j, :), '-', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
+            semilogx(fre, data(i).data.mag(j, :), '-', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
         elseif j>10 && j<=20
-            semilogx(fre, data(i).mag(j, :), '--', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
+            semilogx(fre, data(i).data.mag(j, :), '--', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
         else
-            semilogx(fre, data(i).mag(j, :), '-.', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
+            semilogx(fre, data(i).data.mag(j, :), '-.', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
         end
     end
     hold off;
     
     % Title with fontsize
-    title([data(i).expnum '-' data(i).cabletype '-' 'Magnitude'], 'FontSize', fontsize);
+    title([data(i).expnum '-' data(i).Cabletype '-' 'Magnitude'], 'FontSize', fontsize);
     
     % Create the legend with formatted values and title
     legend_values = arrayfun(@(vwc, urea) sprintf('W:%.2f U:%02d', vwc, urea), ...
@@ -121,12 +121,12 @@ for i = 1:length(data)
         % Create a semilogx plot with different colors for each line
         hold on;
         for j = 1:N_levels
-            semilogx(fre, data(i).phs(WC_idx(j,k), :), 'LineWidth', 2, 'Color', colors(j, :));
+            semilogx(fre, data(i).data.phs(WC_idx(j,k), :), 'LineWidth', 2, 'Color', colors(j, :));
         end
         hold off;
     
         % Title with fontsize
-        title([data(i).expnum '-' data(i).cabletype '-' 'VWC:' num2str(data(i).gt.WC(WC_idx(1,k))) '-' 'Phase'], ...
+        title([data(i).expnum '-' data(i).Cabletype '-' 'VWC:' num2str(data(i).gt.WC(WC_idx(1,k))) '-' 'Phase'], ...
               'FontSize', fontsize);
     
         % Create the legend with formatted values and title
@@ -152,17 +152,17 @@ for i = 1:length(data)
     hold on;
     for j = 1:WC_levels*N_levels
         if j<=10
-            semilogx(fre, data(i).phs(j, :), '-', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
+            semilogx(fre, data(i).data.phs(j, :), '-', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
         elseif j>10 && j<=20
-            semilogx(fre, data(i).phs(j, :), '--', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
+            semilogx(fre, data(i).data.phs(j, :), '--', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
         else
-            semilogx(fre, data(i).phs(j, :), '-.', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
+            semilogx(fre, data(i).data.phs(j, :), '-.', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
         end
     end
     hold off;
     
     % Title with fontsize
-    title([data(i).expnum '-' data(i).cabletype '-' 'Phase'], 'FontSize', fontsize);
+    title([data(i).expnum '-' data(i).Cabletype '-' 'Phase'], 'FontSize', fontsize);
     
     % Create the legend with formatted values and title
     legend_values = arrayfun(@(vwc, urea) sprintf('W:%.2f U:%02d', vwc, urea), ...
