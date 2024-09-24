@@ -34,7 +34,8 @@ lab_expnum = {'R1', 'R2', 'R3'};     % Experiment numbers
 lab_expcbtype = {'SC', 'LC'};        % Cable types 
 
 % Pre-allocate a structure array to store the results
-results = struct('expnum', {}, 'Cabletype', {}, 'data', {}, 'gt', {});
+results = struct('expnum', {}, 'Cabletype', {}, 'Numsamples', {}, ...
+                 'data', {}, 'gt', {});
 
 % Initialize an index to track the current entry in the structure array
 idx = 1;
@@ -63,7 +64,7 @@ for i = 1:length(lab_expnum)
         % Store the results for the current combination in the structure array
         results(idx).expnum = current_expnum;       % Store exp. number
         results(idx).Cabletype = current_expcbtype; % Store cable type
-        results(idx).Numsamples = data_size;         % Number of samples found
+        results(idx).Numsamples = data_size;        % Number of samples found
         results(idx).data = data;                   % Lab data
         results(idx).gt = gt;                       % Store gt. data
         
