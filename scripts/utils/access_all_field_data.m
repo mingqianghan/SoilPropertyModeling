@@ -63,12 +63,12 @@ for i = 1:length(plot_name)
             fprintf('Found %3d samples.\n', data_size);
             
             % Store the results in the structure array
-            results(idx).Plotname = current_plot;        % Plot type (EP or LP)
-            results(idx).Ntype = current_subplot;        % Nitrogen type (WN or ON)
-            results(idx).Cabletype = current_cabletype;  % Cable type (LC or SC)
-            results(idx).Numsamples = data_size;         % Number of samples found
-            results(idx).data = data;                    % Field data
-            results(idx).gt = gt;                        % Ground truth data
+            results(idx).Plotname = current_plot;     
+            results(idx).Ntype = current_subplot;     
+            results(idx).Cabletype = current_cabletype;  
+            results(idx).Numsamples = data_size;         
+            results(idx).data = data;                    
+            results(idx).gt = gt;                     
             
             % Increment the index for the next configuration
             idx = idx + 1;

@@ -8,14 +8,11 @@ N_gt_subpath = 'Lab\Nitrogen_Calibration.xlsx';
 
 % Define parameters
 lab_exptype = 'Nitrogen';  
-
 data = access_all_lab_data(mainpath, lab_exptype, N_gt_subpath);
-
 fre = calculate_frequencies_Hz();
 
 N_levels = 10;
 WC_levels = 3;
-
 fontsize = 13;
 
 % Define a set of colors to cycle through
@@ -32,151 +29,107 @@ colors = [
     0.5 0.5 0.5;    % Gray
 ];
 
-
-WC_idx = zeros(N_levels,WC_levels);
-
-% Magnitude
+% Precompute WC_idx for all datasets
 for i = 1:length(data)
-    
-    WC_idx = [find(data(i).gt.WC == 0.108),... 
-              find(data(i).gt.WC == 0.216),...
-              find(data(i).gt.WC == 0.324)];
-    for k = 1:WC_levels
-        figure,
-        set(gcf, 'Position', [100, 100, 850, 600]);  % Adjust size [left, bottom, width, height]
-        
-        % Create a semilogx plot with different colors for each line
-        hold on;
-        for j = 1:N_levels
-            semilogx(fre, data(i).data.mag(WC_idx(j,k), :), 'LineWidth', 2, 'Color', colors(j, :));
-        end
-        hold off;
-    
-        % Title with fontsize
-        title([data(i).expnum '-' data(i).Cabletype '-' 'VWC:' num2str(data(i).gt.WC(WC_idx(1,k))) '-' 'Magnitude'], ...
-              'FontSize', fontsize);
-    
-        % Create the legend with formatted values and title
-        legend_values = arrayfun(@(x) sprintf('%02d', x), data(i).gt.Urea(WC_idx(:,k)), 'UniformOutput', false);
-        lgd = legend(legend_values, 'Location', 'eastoutside', 'FontSize', fontsize);
-        title(lgd, 'Urea added (mg)');  % Add title to the legend
-    
-        % Axis labels with custom font size
-        xlabel('frequency (Hz)', 'FontSize', fontsize);
-        ylabel(' V_{probe}/V_{total} (dB)', 'FontSize', fontsize);
-    
-        % Set tick label sizes (both X and Y axes)
-        ax = gca;  % Get the current axis
-        ax.XAxis.FontSize = fontsize;  % Set X-axis tick label size
-        ax.YAxis.FontSize = fontsize;  % Set Y-axis tick label size
-       set(gca,'XScale','log')  % Ensure X-axis is logarithmic
-    end
-    figure,
-    
-    set(gcf, 'Position', [100, 100, 850, 600]);  % Adjust size [left, bottom, width, height]
-
-    % Create a semilogx plot with different colors for each line
-    hold on;
-    for j = 1:WC_levels*N_levels
-        if j<=10
-            semilogx(fre, data(i).data.mag(j, :), '-', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
-        elseif j>10 && j<=20
-            semilogx(fre, data(i).data.mag(j, :), '--', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
-        else
-            semilogx(fre, data(i).data.mag(j, :), '-.', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
-        end
-    end
-    hold off;
-    
-    % Title with fontsize
-    title([data(i).expnum '-' data(i).Cabletype '-' 'Magnitude'], 'FontSize', fontsize);
-    
-    % Create the legend with formatted values and title
-    legend_values = arrayfun(@(vwc, urea) sprintf('W:%.2f U:%02d', vwc, urea), ...
-                               data(i).gt.WC, data(i).gt.Urea, 'UniformOutput', false);
-    lgd = legend(legend_values, 'Location', 'eastoutside', 'FontSize', fontsize);
-    title(lgd, 'VWC & N');  % Add title to the legend
-    
-    % Axis labels with custom font size
-    xlabel('frequency (Hz)', 'FontSize', fontsize);
-    ylabel(' V_{probe}/V_{total} (dB)', 'FontSize', fontsize);
-    
-    % Set tick label sizes (both X and Y axes)
-    ax = gca;  % Get the current axis
-    ax.XAxis.FontSize = fontsize;  % Set X-axis tick label size
-    ax.YAxis.FontSize = fontsize;  % Set Y-axis tick label size
-    set(gca,'XScale','log')  % Ensure X-axis is logarithmic
+    data(i).WC_idx = [find(data(i).gt.WC == 0.108), ... 
+                      find(data(i).gt.WC == 0.216), ...
+                      find(data(i).gt.WC == 0.324)];
 end
 
-% Phase
-for i = 1:length(data)
-    
-    WC_idx = [find(data(i).gt.WC == 0.108),... 
-              find(data(i).gt.WC == 0.216),...
-              find(data(i).gt.WC == 0.324)];
-    for k = 1:WC_levels
-        figure,
-        set(gcf, 'Position', [100, 100, 850, 600]);  % Adjust size [left, bottom, width, height]
-        
-        % Create a semilogx plot with different colors for each line
+% Plot Magnitude and Phase using the new functions
+create_plots(data, fre, WC_levels, N_levels, colors, fontsize, 'mag', ...
+            ' V_{probe}/V_{total} (dB)');
+create_combined_plots(data, fre,  WC_levels, N_levels, colors, ...
+                      fontsize, 'mag', ' V_{probe}/V_{total} (dB)');
+
+create_plots(data, fre,  WC_levels, N_levels, colors, fontsize, 'phs', ...
+            'Absolute Phase Difference (degrees)');
+create_combined_plots(data, fre,  WC_levels, N_levels, colors, ...
+                      fontsize, 'phs', ...
+                      'Absolute Phase Difference (degrees)');
+
+% Function to create semilogx plots
+function create_plots(data, fre, WC_levels, N_levels, colors, ...
+                      fontsize, plot_type, ylabel_text)
+    for i = 1:length(data)
+        WC_idx = data(i).WC_idx;
+        for k = 1:WC_levels
+            figure('Position', [100, 100, 850, 600]);
+            hold on;
+            
+            for j = 1:N_levels
+                semilogx(fre, data(i).data.(plot_type)(WC_idx(j, k), :),...
+                         'LineWidth', 2, 'Color', colors(j, :));
+            end
+            hold off;
+
+            % Title and labels
+            title([data(i).expnum '-' data(i).Cabletype '-VWC:' ...
+                   num2str(data(i).gt.WC(WC_idx(1, k))) '-' plot_type], ...
+                   'FontSize', fontsize);
+            xlabel('frequency (Hz)', 'FontSize', fontsize);
+            ylabel(ylabel_text, 'FontSize', fontsize);
+
+            % Create legend
+            legend_values = arrayfun(@(x) sprintf('%02d', x), ...
+                            data(i).gt.Urea(WC_idx(:, k)), ...
+                            'UniformOutput', false);
+            lgd = legend(legend_values, 'Location', 'eastoutside', ...
+                         'FontSize', fontsize);
+            title(lgd, 'Urea added (mg)');
+            
+            % Axis settings
+            ax = gca;
+            ax.XAxis.FontSize = fontsize;
+            ax.YAxis.FontSize = fontsize;
+            set(gca, 'XScale', 'log');
+        end
+    end
+end
+
+% Function to create combined plots
+function create_combined_plots(data, fre, WC_levels, N_levels, ...
+                               colors, fontsize, plot_type, ylabel_text)
+    for i = 1:length(data)
+        figure('Position', [100, 100, 850, 600]);
         hold on;
-        for j = 1:N_levels
-            semilogx(fre, data(i).data.phs(WC_idx(j,k), :), 'LineWidth', 2, 'Color', colors(j, :));
+        
+        for j = 1:WC_levels * N_levels
+            if j <= 10
+                semilogx(fre, data(i).data.(plot_type)(j, :), '-', ...
+                         'LineWidth', 2, 'Color', ...
+                         colors(mod(j-1, N_levels)+1, :));
+            elseif j <= 20
+                semilogx(fre, data(i).data.(plot_type)(j, :), '--', ...
+                         'LineWidth', 2, 'Color', ...
+                         colors(mod(j-1, N_levels)+1, :));
+            else
+                semilogx(fre, data(i).data.(plot_type)(j, :), '-.', ...
+                         'LineWidth', 2, 'Color', ...
+                         colors(mod(j-1, N_levels)+1, :));
+            end
         end
         hold off;
-    
-        % Title with fontsize
-        title([data(i).expnum '-' data(i).Cabletype '-' 'VWC:' num2str(data(i).gt.WC(WC_idx(1,k))) '-' 'Phase'], ...
-              'FontSize', fontsize);
-    
-        % Create the legend with formatted values and title
-        legend_values = arrayfun(@(x) sprintf('%02d', x), data(i).gt.Urea(WC_idx(:,k)), 'UniformOutput', false);
-        lgd = legend(legend_values, 'Location', 'eastoutside', 'FontSize', fontsize);
-        title(lgd, 'Urea added (mg)');  % Add title to the legend
-    
-        % Axis labels with custom font size
-        xlabel('frequency (Hz)', 'FontSize', fontsize);
-        ylabel('Absolute Phase Difference (degrees)', 'Fontsize', fontsize);
-    
-        % Set tick label sizes (both X and Y axes)
-        ax = gca;  % Get the current axis
-        ax.XAxis.FontSize = fontsize;  % Set X-axis tick label size
-        ax.YAxis.FontSize = fontsize;  % Set Y-axis tick label size
-       set(gca,'XScale','log')  % Ensure X-axis is logarithmic
-    end
-    figure,
-    
-    set(gcf, 'Position', [100, 100, 850, 600]);  % Adjust size [left, bottom, width, height]
 
-    % Create a semilogx plot with different colors for each line
-    hold on;
-    for j = 1:WC_levels*N_levels
-        if j<=10
-            semilogx(fre, data(i).data.phs(j, :), '-', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
-        elseif j>10 && j<=20
-            semilogx(fre, data(i).data.phs(j, :), '--', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
-        else
-            semilogx(fre, data(i).data.phs(j, :), '-.', 'LineWidth', 2, 'Color', colors(mod(j-1,N_levels)+1, :));
-        end
+        % Title and labels
+        title([data(i).expnum '-' data(i).Cabletype '-' plot_type], ...
+              'FontSize', fontsize);
+        xlabel('frequency (Hz)', 'FontSize', fontsize);
+        ylabel(ylabel_text, 'FontSize', fontsize);
+
+        % Create legend
+        legend_values = arrayfun(@(vwc, urea) ...
+                        sprintf('W:%.2f U:%02d', vwc, urea), ...
+                        data(i).gt.WC, data(i).gt.Urea, ...
+                        'UniformOutput', false);
+        lgd = legend(legend_values, 'Location', 'eastoutside', ...
+                     'FontSize', fontsize);
+        title(lgd, 'VWC & N');
+
+        % Axis settings
+        ax = gca;
+        ax.XAxis.FontSize = fontsize;
+        ax.YAxis.FontSize = fontsize;
+        set(gca, 'XScale', 'log');
     end
-    hold off;
-    
-    % Title with fontsize
-    title([data(i).expnum '-' data(i).Cabletype '-' 'Phase'], 'FontSize', fontsize);
-    
-    % Create the legend with formatted values and title
-    legend_values = arrayfun(@(vwc, urea) sprintf('W:%.2f U:%02d', vwc, urea), ...
-                               data(i).gt.WC, data(i).gt.Urea, 'UniformOutput', false);
-    lgd = legend(legend_values, 'Location', 'eastoutside', 'FontSize', fontsize);
-    title(lgd, 'VWC & N');  % Add title to the legend
-    
-    % Axis labels with custom font size
-    xlabel('frequency (Hz)', 'FontSize', fontsize);
-    ylabel('Absolute Phase Difference (degrees)', 'Fontsize', fontsize);
-    
-    % Set tick label sizes (both X and Y axes)
-    ax = gca;  % Get the current axis
-    ax.XAxis.FontSize = fontsize;  % Set X-axis tick label size
-    ax.YAxis.FontSize = fontsize;  % Set Y-axis tick label size
-    set(gca,'XScale','log')  % Ensure X-axis is logarithmic
 end
