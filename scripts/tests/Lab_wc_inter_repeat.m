@@ -27,25 +27,19 @@ model_name = strcat(vr_selection, '_', rg_model);
 % Check if model already exists and create necessary directories
 write_data = check_model(results_file_path, full_results_path, model_name);
 
-% Precompute size for looping to avoid recalculating within the loop
-numPredictors = length(Predictors);
-numExp = length(cur_expnum);
-numCable = length(cur_cabletype);
-
-
-
 % Iterate over predictors, experiment setups, and cable types
-for k = 1:numPredictors
+for k = 1:length(Predictors)
     fprintf('\nVS Method: %s, Regression model: %s\n', vr_selection, rg_model);
     fprintf('Features: %s\n', Predictors{k});
     
-    for i = 1:numCable
+    for i = 1:length(cur_cabletype)
         matches = arrayfun(@(x) strcmp(x.Cabletype, cur_cabletype{i}), data);
         [data_x_valid, data_y_valid, data_category] = extract_and_clean_data( data(matches), 'lab', Predictors{k}, 'WC_Calculated');
-        for j = 1:numExp
+        for j = 1:length(cur_expnum)
             [train_x, train_y, val_x, val_y] = train_val_split(data_x_valid, data_y_valid, ...
                                                    'category', 'val_categories', cur_expnum{j}, 'category_array', data_category);
             [best_mdl, best_var_num, score_idx, scores] = MRMR_based_models(train_x, train_y, val_x, val_y, num_max_vr, rg_model);
+            fprintf('Cable(%s), Val Set(%s), Varnum(%d)\n', cur_cabletype{i}, cur_expnum{j}, best_var_num);
             output_label = strcat(Predictors{k}, '_', cur_cabletype{i}, '_', cur_expnum{j});
             save_model_performance(best_mdl, best_var_num, score_idx, scores, train_x, train_y, val_x, val_y, vr_selection, rg_model, output_label, write_data, results_file_path)
 

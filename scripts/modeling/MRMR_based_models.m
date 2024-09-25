@@ -57,7 +57,8 @@ for k = 1:num_max_vr
         mdl = fitlm(train_x(:, fea_indices), train_y);
     elseif strcmp(rg_model, 'SVM')
         % Train a Support Vector Machine (SVM) model
-        mdl = fitrsvm(train_x(:, fea_indices), train_y);
+        rng default  % For reproducibility
+        mdl = fitrsvm(train_x(:, fea_indices), train_y, 'KernelFunction','gaussian','KernelScale','auto');
     end
 
     % Validate the model by predicting on the validation set

@@ -25,7 +25,7 @@ p = inputParser;
 addParameter(p, 'train_ratio', 0.7, @isnumeric);    % Default train/val split ratio is 0.7
 addParameter(p, 'val_categories', [], @(x) isvector(x) || isempty(x));  % Validation categories for category-based split
 addParameter(p, 'category_array', [], @(x) isvector(x) && numel(x) == numel(data_y));  % Category array for data points
-addParameter(p, 'seed', 42, @isnumeric);            % Default seed for reproducibility
+addParameter(p, 'seed', 333, @isnumeric);            % Default seed for reproducibility
 
 parse(p, varargin{:});
 train_ratio = p.Results.train_ratio;
