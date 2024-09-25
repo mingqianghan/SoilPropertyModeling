@@ -18,8 +18,6 @@ write_data = false;
 results_file_path = 'none';
 
 
-% year = '24';
-% mainpath = 'data\UG nodes';
 all_data = access_all_field_data(year, mainpath);
 
 
@@ -29,9 +27,9 @@ for j = 1:length(Predictors)
     for i = 1: length(plot_name)
         for k = 1:length(N_type)
             matches = arrayfun(@(x) strcmp(x.Cabletype, 'LC')&&strcmp(x.Plotname, plot_name{i})&&strcmp(x.Ntype, N_type{k}), all_data);
-            [data_x_field, data_y_field, ~] = extract_and_clean_data( all_data(matches), 'field', Predictors{j}, 'VWC');
+            [data_x_field, data_y_field, ~] = extract_and_clean_data( all_data(matches), 'field', Predictors{j}, 'totN');
 
-           [train_x, train_y, val_x, val_y] = train_val_split(data_x_field, data_y_field, 'ratio', 'train_ratio', 0.8);
+            [train_x, train_y, val_x, val_y] = train_val_split(data_x_field, data_y_field, 'ratio', 'train_ratio', 0.8);
 
             [best_mdl, best_var_num, score_idx, scores] = MRMR_based_models(train_x, train_y, val_x, val_y, num_max_vr, rg_model);
             fprintf('Plot(%s) Ntype(%s) Varnum(%d)\n', plot_name{i}, N_type{k}, best_var_num);
