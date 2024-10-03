@@ -9,7 +9,7 @@ mainpath = 'data\UG nodes';
 plot_name = {'EP', 'LP'};
 N_type = {'WN', 'ON'};
 Predictors = {'Mag', 'Phs', 'MaP'}; 
-num_max_vr = 10;
+num_max_vr = 20;
 rg_model = 'LR';  % LR, SVM
 vr_selection = 'MRMR';
 
@@ -37,7 +37,7 @@ for j = 1:length(Predictors)
         % matches = arrayfun(@(x) strcmp(x.Cabletype, 'LC')&&~(strcmp(x.Plotname, 'EP')&&strcmp(x.Ntype, 'ON')), all_data);
         matches = arrayfun(@(x) strcmp(x.Cabletype, 'LC'), all_data);
        
-        [data_x_field, data_y_field, data_categories] = extract_and_clean_data( all_data(matches), 'field', Predictors{j}, 'NO3');
+        [data_x_field, data_y_field, data_categories] = extract_and_clean_data( all_data(matches), 'field', Predictors{j}, 'VWC');
         
         [train_x, train_y, val_x, val_y] = train_val_split(data_x_field, data_y_field, 'category', 'val_categories', combinations{i}, 'category_array',data_categories);
 

@@ -27,7 +27,7 @@ for j = 1:length(Predictors)
     for i = 1: length(plot_name)
         for k = 1:length(N_type)
             matches = arrayfun(@(x) strcmp(x.Cabletype, 'LC')&&strcmp(x.Plotname, plot_name{i})&&strcmp(x.Ntype, N_type{k}), all_data);
-            [data_x_field, data_y_field, ~] = extract_and_clean_data( all_data(matches), 'field', Predictors{j}, 'totN');
+            [data_x_field, data_y_field, ~] = extract_and_clean_data( all_data(matches), 'field', Predictors{j}, 'VWC');
 
             [train_x, train_y, val_x, val_y] = train_val_split(data_x_field, data_y_field, 'ratio', 'train_ratio', 0.8);
 

@@ -12,10 +12,10 @@ results_file_name = 'existing_model.csv';
 
 % % Define parameters
 cur_cabletype = {'SC', 'LC'};
-Predictors = {'Mag', 'Phs', 'MaP'}; 
+Predictors = {'Mag', 'Phs', 'MaP'}; % , 'Phs', 'MaP'
 cur_expnum = {'R1', 'R2', 'R3'};
 num_max_vr = 20;
-rg_model = 'SVM';  % LR, SVM
+rg_model = 'LR';  % LR, SVM
 vr_selection = 'MRMR';
 
 % Full path for results file
@@ -34,9 +34,9 @@ for k = 1:length(cur_expnum)
     for j = 1:length(Predictors)
         for i = 1: length(cur_cabletype)
             matches = arrayfun(@(x) strcmp(x.Cabletype, cur_cabletype{i}), data_wc);
-            [data_x_wc, data_y_wc, ~] = extract_and_clean_data( data_wc(matches), 'lab', Predictors{j}, 'WC_Calculated');
-            matches = arrayfun(@(x) strcmp(x.Cabletype, cur_cabletype{i}), data_N);
-            % matches = arrayfun(@(x) strcmp(x.Cabletype, cur_cabletype{i})&& strcmp(x.expnum, cur_expnum{k}), data_N);
+            [data_x_wc, data_y_wc, ~] = extract_and_clean_data( data_wc(matches), 'lab', Predictors{j}, 'WC_Prepared');
+            % matches = arrayfun(@(x) strcmp(x.Cabletype, cur_cabletype{i}), data_N);
+            matches = arrayfun(@(x) strcmp(x.Cabletype, cur_cabletype{i})&& strcmp(x.expnum, cur_expnum{k}), data_N);
             [data_x_N, data_y_N, ~] = extract_and_clean_data( data_N(matches), 'lab', Predictors{j}, 'WC');
 
             train_x = data_x_wc;

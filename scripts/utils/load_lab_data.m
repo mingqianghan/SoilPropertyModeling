@@ -68,7 +68,7 @@ if strcmp(lab_exptype, 'WC')
                        bulk_density;
     gt.WC_Prepared = gt_data.("WC_Prepared (g_g)")(positions, :) * ...
                      bulk_density;
-else
+elseif strcmp(lab_exptype, 'Nitrogen')
     % If the experiment type is 'Nitrogen', get the nitrogen-related data.
     gt.WC = gt_data.("WC_Prepared (g_g)")(positions, :);
     gt.Urea = gt_data.("Urea Added (mg)")(positions, :);
@@ -82,6 +82,23 @@ else
                            gt.WC, gt.Urea, 'UniformOutput', false);
 
     gt.WC = gt_data.("WC_Prepared (g_g)")(positions, :) * bulk_density;
+elseif strcmp(lab_exptype, 'WC_Bending')
+    % Get water content data (calculated, prepared, and sensor readings).
+    gt.WC_Calculated = gt_data.("WC_Calculated (g_g)")(positions,:);
+    gt.WC_Prepared = gt_data.("WC_Prepared (g_g)")(positions,:);
+    gt.Bending = gt_data.("Cable Bending Type")(positions,:);
+
+    % Generate text filenames based on the prepared water content data.
+    txtfilename = arrayfun(@(wc, bd) sprintf('W%02dB%d.txt', wc, bd), ...
+                           gt.WC_Prepared*100, gt.Bending, ...
+                           'UniformOutput', false);
+
+    % Convert to VWC 
+    gt.WC_Calculated = gt_data.("WC_Calculated (g_g)")(positions, :) * ...
+                       bulk_density;
+    gt.WC_Prepared = gt_data.("WC_Prepared (g_g)")(positions, :) * ...
+                     bulk_density;
+
 end
 
 % Get the number of samples based on the number of generated filenames.
