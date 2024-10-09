@@ -44,10 +44,10 @@ for k = 1:length(cur_expnum)
             val_x = data_x_N;
             val_y = data_y_N;
 
-            [best_mdl, best_var_num, score_idx, scores] = MRMR_based_models(train_x, train_y, val_x, val_y, num_max_vr, rg_model);
-            fprintf('Cable(%s), Var(%s) Varnum(%d)\n', cur_cabletype{i}, Predictors{j},  best_var_num);
+            [best_mdl, score_idx, scores] = MRMR_based_models(train_x, train_y, val_x, val_y, num_max_vr, rg_model);
+            fprintf('Cable(%s), Var(%s) Varnum(%d)\n', cur_cabletype{i}, Predictors{j},  best_mdl.var_num);
             output_label = strcat(Predictors{j}, '_', cur_cabletype{i});
-            save_model_performance(best_mdl, best_var_num, score_idx, scores, train_x, train_y, val_x, val_y, vr_selection, rg_model, output_label, write_data, results_file_path)
+            save_model_performance(best_mdl.mdl, best_mdl.var_num, score_idx, scores, train_x, train_y, val_x, val_y, vr_selection, rg_model, output_label, write_data, results_file_path)
         end
     end
 end

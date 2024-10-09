@@ -9,8 +9,8 @@ mainpath = 'data\UG nodes';
 plot_name = {'EP', 'LP'};
 N_type = {'WN', 'ON'};
 Predictors = {'Mag', 'Phs', 'MaP'}; 
-num_max_vr = 20;
-rg_model = 'LR';  % LR, SVM
+num_max_vr = 50;
+rg_model = 'PLS';  % LR, SVM
 vr_selection = 'MRMR';
 
 output_label = 'none';

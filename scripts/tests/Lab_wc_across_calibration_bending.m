@@ -40,7 +40,7 @@ data_wc = access_all_lab_data(mainpath, 'WC', WC_gt_subpath);
 for j = 1:length(Predictors)
     for i = 1: length(cur_cabletype)
         matches = arrayfun(@(x) strcmp(x.Cabletype, cur_cabletype{i}), data_wc);
-        [data_x_wc, data_y_wc, ~] = extract_and_clean_data( data_wc(matches), 'lab', Predictors{j}, 'WC_Prepared');
+        [data_x_wc, data_y_wc, ~] = extract_and_clean_data( data_wc(matches), 'lab', Predictors{j}, 'WC_Calculated');
 
         train_x = data_x_wc;
         train_y = data_y_wc;
