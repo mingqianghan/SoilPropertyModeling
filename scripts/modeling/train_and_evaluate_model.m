@@ -1,6 +1,5 @@
-function [mdl, val_rsquare, val_rmse, train_rsquare] = ...
-         train_and_evaluate_model(rg_model, train_x, train_y, ...
-         val_x, val_y, n_fea, OptParams)
+function [mdl, train_scores, val_scores] = train_and_evaluate_model( ...
+          rg_model, train_x, train_y, val_x, val_y, n_fea, OptParams)
 % -------------------------------------------------------------------------
 % This function trains a regression model based on the specified
 % model type (e.g., LR, ANN, SVM, PLS).
@@ -15,9 +14,8 @@ function [mdl, val_rsquare, val_rmse, train_rsquare] = ...
 %
 % Outputs:
 % - mdl: The trained model.
-% - val_rsquare: R-squared value for validation set.
-% - val_rmse: Root Mean Squared Error for validation set.
-% - train_rsquare: R-squared value for training set.
+% - train_scores: performance_metrics for training set.
+% - val_scores: performance_metrics for validation set.
 %
 % Author: Mingqiang Han
 % Date: 10-09-24
@@ -26,7 +24,7 @@ function [mdl, val_rsquare, val_rmse, train_rsquare] = ...
 switch rg_model
     case 'LR'  % Linear Regression
         mdl = fitlm(train_x, train_y);
-        [train_rsquare, val_rsquare, val_rmse] = evaluate_model( ...
+        [train_scores, val_scores] = evaluate_model( ...
             mdl, train_x, train_y, val_x, val_y);
 
     case 'ANN'  % Artificial Neural Network
@@ -34,8 +32,8 @@ switch rg_model
             fixed_params = {'Activations', 'relu', 'Standardize', true};
             param_sets = {'LayerSizes', [2, 4, 6]; ...
                 'Lambda', [0.01, 0.001]};
-            [mdl, train_rsquare, val_rsquare, val_rmse] = ...
-                train_model(@fitrnet, train_x, train_y, val_x, val_y, ...
+            [mdl, train_scores, val_scores] = train_model( ...
+                @fitrnet, train_x, train_y, val_x, val_y, ...
                 param_sets, fixed_params);
         else
             mdl = fitrnet(train_x, train_y, ...
@@ -43,8 +41,8 @@ switch rg_model
                               'Activations', 'relu', ...
                               'Standardize', true, ...
                               'Lambda', 0.001);
-            [train_rsquare, val_rsquare, val_rmse] = ...
-             evaluate_model(mdl, train_x, train_y, val_x, val_y);
+            [train_scores, val_scores] = evaluate_model( ...
+                mdl, train_x, train_y, val_x, val_y);
         end
 
     case 'SVM'  % Support Vector Machine
@@ -53,20 +51,20 @@ switch rg_model
             param_sets = {'BoxConstraint', [0.1, 1, 10]; ...
                 'Epsilon', [0.01, 0.1, 1]; ...
                 'KernelFunction', {'linear', 'gaussian'}};
-            [mdl, train_rsquare, val_rsquare, val_rmse] = ...
-                train_model(@fitrsvm, train_x, train_y, val_x, val_y, ...
+            [mdl, train_scores, val_scores] = train_model( ...
+                @fitrsvm, train_x, train_y, val_x, val_y, ...
                 param_sets, fixed_params);
         else
             mdl = fitrsvm(train_x, train_y, ...
-                            'KernelFunction', 'gaussian', ...
-                            'KernelScale', 'auto');
-             [train_rsquare, val_rsquare, val_rmse] = ...
-              evaluate_model(mdl, train_x, train_y, val_x, val_y);
+                  'KernelFunction', 'gaussian', ...
+                  'KernelScale', 'auto');
+            [train_scores, val_scores] = evaluate_model( ...
+                mdl, train_x, train_y, val_x, val_y);
         end
 
     case 'PLS'  % Partial Least Squares
-        [mdl, train_rsquare, val_rsquare, val_rmse] = ...
-            train_pls(train_x, train_y, val_x, val_y, n_fea);
+        [mdl, train_scores, val_scores] = train_pls( ...
+            train_x, train_y, val_x, val_y, n_fea);
 
     otherwise
         error('Unsupported model type');
@@ -75,7 +73,7 @@ end
 
 
 %% Function: evaluate_model (Helper function)
-function [train_rsquare, val_rsquare, val_rmse] = ...
+function [train_scores, val_scores] = ...
          evaluate_model(mdl, train_x, train_y, val_x, val_y)
 % -------------------------------------------------------------------------
 % This function evaluates the performance of the trained model on
@@ -87,25 +85,23 @@ function [train_rsquare, val_rsquare, val_rmse] = ...
 % - val_x, val_y: Validation features and labels.
 %
 % Outputs:
-% - train_rsquare: R-squared value for training set.
-% - val_rsquare: R-squared value for validation set.
-% - val_rmse: Root Mean Squared Error for validation set.
+% - train_scores: performance_metrics for training set.
+% - val_scores: performance_metrics for validation set.
 %
 % Author: Mingqiang Han
 % Date: 10-09-24
 % -------------------------------------------------------------------------
 yPred_train = predict(mdl, train_x);
 yPred_val = predict(mdl, val_x);
-[train_rsquare, ~, ~] = model_evaluation(yPred_train, train_y);
-[val_rsquare, val_rmse, ~] = model_evaluation(yPred_val, val_y);
+train_scores = model_evaluation(yPred_train, train_y);
+val_scores = model_evaluation(yPred_val, val_y);
 end
 
 
 %% Function: train_model (Helper function)
-function [best_mdl, best_train_rsquare, ...
-          best_val_rsquare, best_val_rmse] = train_model( ...
-          train_func, train_x, train_y, val_x, val_y, ...
-          param_sets, fixed_params)
+function [best_mdl, best_train_scores, best_val_scores] = train_model( ...
+          train_func, train_x, train_y, val_x, val_y, param_sets, ...
+          fixed_params)
 % -------------------------------------------------------------------------
 % This function trains a model using different combinations of
 % hyperparameters and selects the best model based on validation RMSE.
@@ -119,18 +115,17 @@ function [best_mdl, best_train_rsquare, ...
 %
 % Outputs:
 % - best_mdl: Trained model with the best performance.
-% - best_train_rsquare:
-%   R-squared value for the training set of the best model.
-% - best_val_rsquare:
-% R-squared value for the validation set of the best model.
-% - best_val_rmse: RMSE for the validation set of the best model.
+% - best_train_scores:
+%   performance metrics for the training set of the best model.
+% - best_val_scores:
+%   performance metrics for the validation set of the best model.
 %
 % Author: Mingqiang Han
 % Date: 10-09-24
 % -------------------------------------------------------------------------
 best_val_rmse = inf;
-best_train_rsquare = -inf;
-best_val_rsquare = -inf;
+best_train_scores = struct('rmse', inf, 'mae', inf, 'rsquare', -inf);
+best_val_scores = struct('rmse', inf, 'mae', inf, 'rsquare', -inf);
 best_mdl = [];
 
 % Generate all combinations of parameters
@@ -140,18 +135,19 @@ for i = 1:size(param_combinations, 1)
     % Set random seed for each training iteration
     % to ensure reproducibility
     rng(3453);
-    mdl_new = train_func(train_x, train_y, params{:}, fixed_params{:});
-    [train_rsquare_new, val_rsquare_new, val_rmse_new] = ...
-        evaluate_model(mdl_new, train_x, train_y, val_x, val_y);
+    mdl = train_func(train_x, train_y, params{:}, fixed_params{:});
+
+    [train_scores, val_scores] = evaluate_model( ...
+        mdl, train_x, train_y, val_x, val_y);
 
     % Select the model based on validation RMSE
     % and generalization performance
-    if val_rmse_new < best_val_rmse && ...
-            train_rsquare_new >= val_rsquare_new
-        best_val_rmse = val_rmse_new;
-        best_train_rsquare = train_rsquare_new;
-        best_val_rsquare = val_rsquare_new;
-        best_mdl = mdl_new;
+    if val_scores.rmse < best_val_rmse && ...
+            train_scores.rsquare >= val_scores.rsquare
+        best_val_rmse = val_scores.rmse;
+        best_train_scores = train_scores;
+        best_val_scores = val_scores;
+        best_mdl = mdl;
     end
 end
 end
@@ -193,8 +189,8 @@ end
  
 
 %% Function: train_pls (Helper function)
-function [best_mdl, best_train_rsquare, best_val_rsquare, ...
-          best_val_rmse] = train_pls(train_x, train_y, val_x, val_y, n_fea)
+function [best_mdl, best_train_scores, best_val_scores] = train_pls( ...
+          train_x, train_y, val_x, val_y, n_fea)
 % -------------------------------------------------------------------------
 % This function trains a Partial Least Squares (PLS) regression model 
 % with a varying number of components.
@@ -207,11 +203,10 @@ function [best_mdl, best_train_rsquare, best_val_rsquare, ...
 %
 % Outputs:
 % - best_mdl: Trained PLS model with the best performance.
-% - best_train_rsquare: R-squared value for the training set 
-%                      of the best model.
-% - best_val_rsquare: R-squared value for the validation set 
-%                     of the best model.
-% - best_val_rmse: RMSE for the validation set of the best model.
+% - best_train_scores:
+%   performance metrics for the training set of the best model.
+% - best_val_scores:
+%   performance metrics for the validation set of the best model.
 %
 % Author: Mingqiang Han
 % Date: 10-09-24
@@ -219,8 +214,8 @@ function [best_mdl, best_train_rsquare, best_val_rsquare, ...
 num_train = size(train_x, 1);
 num_val = size(val_x, 1);
 best_val_rmse = inf;
-best_train_rsquare = -inf;
-best_val_rsquare = -inf;
+best_train_scores = struct('rmse', inf, 'mae', inf, 'rsquare', -inf);
+best_val_scores = struct('rmse', inf, 'mae', inf, 'rsquare', -inf);
 best_mdl = [];
 
 % Train PLS model with different numbers of components
@@ -229,18 +224,18 @@ for n_comp = 1:n_fea
     yPred_train = [ones(num_train, 1), train_x] * BETA;
     yPred_val = [ones(num_val, 1), val_x] * BETA;
     % Evaluate PLS model
-    [train_rsquare_new, ~, ~] = model_evaluation(yPred_train, train_y);
-    [val_rsquare_new, val_rmse_new, ~] = ...
-        model_evaluation(yPred_val, val_y);
+    train_scores = model_evaluation(yPred_train, train_y);
+    val_scores = model_evaluation(yPred_val, val_y);
 
     % Select the model based on validation RMSE 
     % and generalization performance
-    if val_rmse_new < best_val_rmse && train_rsquare_new >= val_rsquare_new
-        best_val_rmse = val_rmse_new;
-        best_train_rsquare = train_rsquare_new;
-        best_val_rsquare = val_rsquare_new;
+    if val_scores.rmse < best_val_rmse && ...
+            train_scores.rsquare >= val_scores.rsquare
+        best_val_rmse = val_scores.rmse;
+        best_train_scores = train_scores;
+        best_val_scores = val_scores;
         best_mdl.BETA = BETA;
-        best_mdl.n_comp = n_comp;
+        % best_mdl.n_comp = n_comp;
     end
 end
 end

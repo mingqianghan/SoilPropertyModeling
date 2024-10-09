@@ -37,9 +37,9 @@ best_fs = [];     % Initialize the best feature selection variable
 switch fs_method
     case 'MRMR'
         % Process feature selection using MRMR method
-        [best_mdl, best_fs, ~] = process_feature_selection(...
-         train_x, train_y, val_x, val_y, num_max_vr, rg_model, ...
-         fs_param, OptParams);
+        [best_mdl, best_fs] = process_feature_selection( ...
+            train_x, train_y, val_x, val_y, num_max_vr, rg_model, ...
+            fs_param, OptParams);
 
     case 'PLS_VIP'
         % Iterate over the possible number of PLS components
@@ -47,16 +47,16 @@ switch fs_method
             % Set the number of PLS components in fs_param
             fs_param.ncomp = ncomp;
             % Perform feature selection and model training
-            [best_mdl_temp, best_fs_temp, best_rmse_temp] = ...
+            [best_mdl_temp, best_fs_temp] = ...
                 process_feature_selection(train_x, train_y, ...
                 val_x, val_y, num_max_vr, rg_model, fs_param, OptParams);
 
             % Track the best model based on RMSE and Rsquare criteria
-            if best_rmse_temp < best_rmse ...
-                && best_mdl_temp.train_rsquare >= best_mdl_temp.val_rsquare
+            if best_mdl_temp.val_scores.rmse < best_rmse && ...
+               best_mdl_temp.train_scores.rsquare >= ...
+               best_mdl_temp.val_scores.rsquare
                 best_mdl = best_mdl_temp;  % Updates 
                 best_fs = best_fs_temp;    
-                best_rmse = best_rmse_temp; 
             end
         end
 
@@ -67,7 +67,7 @@ end
 end
 
 
-function [best_mdl, best_fs, best_rmse] = process_feature_selection(...
+function [best_mdl, best_fs] = process_feature_selection( ...
     train_x, train_y, val_x, val_y, max_vr, rg_model, fs_param, OptParams)
 % -------------------------------------------------------------------------
 % Helper function to process feature selection and track the best model.
@@ -86,7 +86,6 @@ function [best_mdl, best_fs, best_rmse] = process_feature_selection(...
 %   - best_mdl: The trained regression model with the best performance.
 %   - best_fs: Feature selection result 
 %              (indices and scores of selected features).
-%   - best_rmse: RMSE value for the best model.
 %
 % Author: Mingqiang Han
 % Date: 10-07-24
@@ -114,27 +113,22 @@ for n_fea = 1:num_max_vr
     val_x_new = val_x(:, fea_indices);     
 
     % Train and evaluate the regression model with selected features
-    [mdl, val_rsquare, val_rmse, train_rsquare] = ...
+    [mdl, train_eval_scores, val_eval_scores] = ...
         train_and_evaluate_model(rg_model, train_x_new, train_y, ...
-         val_x_new, val_y, n_fea, OptParams);
+        val_x_new, val_y, n_fea, OptParams);
 
     % Update the best model if the current one is better
-    if val_rmse < best_rmse && train_rsquare >= val_rsquare
-        best_rmse = val_rmse;  % Update best RMSE
+    if val_eval_scores.rmse < best_rmse && ...
+            train_eval_scores.rsquare >= val_eval_scores.rsquare
+        best_rmse = val_eval_scores.rmse;  % Update best RMSE
         best_fs = fs;          % Store the feature selection result
 
         % Store details of the best model
         best_mdl.name = rg_model;
         best_mdl.mdl = mdl;
         best_mdl.var_num = n_fea;  % Number of selected features
-        best_mdl.train_rsquare = train_rsquare;
-        best_mdl.val_rsquare = val_rsquare;
-
-        % For PLS, store additional coefficients
-        if strcmp(rg_model, 'PLS')
-            best_mdl.n_comp = mdl.n_comp;  % Number of PLS components
-            best_mdl.BETA = mdl.BETA;      % PLS regression coefficients
-        end
+        best_mdl.train_scores = train_eval_scores;
+        best_mdl.val_scores = val_eval_scores;
     end
 end
 
