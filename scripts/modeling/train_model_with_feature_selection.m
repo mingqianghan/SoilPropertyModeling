@@ -1,5 +1,6 @@
 function [best_mdl, best_fs] = train_model_with_feature_selection( ...
-    train_x, train_y, val_x, val_y, num_max_vr, fs_method, rg_model)
+    train_x, train_y, val_x, val_y, num_max_vr, fs_method, rg_model, ...
+    OptParams)
 % -------------------------------------------------------------------------
 % Function to train a regression model with feature selection based on
 % the specified feature selection method (MRMR or PLS_VIP).
@@ -37,7 +38,8 @@ switch fs_method
     case 'MRMR'
         % Process feature selection using MRMR method
         [best_mdl, best_fs, ~] = process_feature_selection(...
-        train_x, train_y, val_x, val_y, num_max_vr, rg_model, fs_param);
+         train_x, train_y, val_x, val_y, num_max_vr, rg_model, ...
+         fs_param, OptParams);
 
     case 'PLS_VIP'
         % Iterate over the possible number of PLS components
@@ -47,7 +49,7 @@ switch fs_method
             % Perform feature selection and model training
             [best_mdl_temp, best_fs_temp, best_rmse_temp] = ...
                 process_feature_selection(train_x, train_y, ...
-                val_x, val_y, num_max_vr, rg_model, fs_param);
+                val_x, val_y, num_max_vr, rg_model, fs_param, OptParams);
 
             % Track the best model based on RMSE and Rsquare criteria
             if best_rmse_temp < best_rmse ...
@@ -59,13 +61,14 @@ switch fs_method
         end
 
     otherwise
-        error('Unsupported feature selection method. Choose either MRMR or PLS_VIP.');
+        error(['Unsupported feature selection method. ' ...
+               'Choose either MRMR or PLS_VIP.']);
 end
 end
 
 
 function [best_mdl, best_fs, best_rmse] = process_feature_selection(...
-    train_x, train_y, val_x, val_y, max_vr, rg_model, fs_param)
+    train_x, train_y, val_x, val_y, max_vr, rg_model, fs_param, OptParams)
 % -------------------------------------------------------------------------
 % Helper function to process feature selection and track the best model.
 %
@@ -113,7 +116,7 @@ for n_fea = 1:num_max_vr
     % Train and evaluate the regression model with selected features
     [mdl, val_rsquare, val_rmse, train_rsquare] = ...
         train_and_evaluate_model(rg_model, train_x_new, train_y, ...
-        val_x_new, val_y, n_fea);
+         val_x_new, val_y, n_fea, OptParams);
 
     % Update the best model if the current one is better
     if val_rmse < best_rmse && train_rsquare >= val_rsquare
