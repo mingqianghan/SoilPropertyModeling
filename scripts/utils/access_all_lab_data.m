@@ -30,7 +30,7 @@ function results = access_all_lab_data(mainpath, lab_exptype, gt_subpath)
 % -------------------------------------------------------------------------
 
 % Define the list of experiment repeat numbers and cable types
-lab_expnum = {'R1', 'R2', 'R3'};     % Experiment numbers 
+lab_expnum = {'R1', 'R2', 'R3', 'R4'};     % Experiment numbers 
 lab_expcbtype = {'SC', 'LC'};        % Cable types 
 
 % Pre-allocate a structure array to store the results
@@ -47,29 +47,34 @@ for i = 1:length(lab_expnum)
         % Extract the current experiment repeat number and cable type
         current_expnum = lab_expnum{i};        % Current experiment number
         current_expcbtype = lab_expcbtype{j};  % Current cable type
-        
-        % Display the current experiment combination being processed
-        fprintf('Experiment(%s), Cable type(%s) -> ', ...
+
+        all_sheets = sheetnames(fullfile(mainpath, gt_subpath));
+
+        if any(strcmp(all_sheets, current_expnum))
+
+            % Display the current experiment combination being processed
+            fprintf('Experiment(%s), Cable type(%s) -> ', ...
                 current_expnum, current_expcbtype);
 
-        % Load magnitude, phase, and ground truth data
-        [data, gt, data_size] = load_lab_data(mainpath, ...
-                                                  lab_exptype, ...
-                                                  current_expnum, ...
-                                                  current_expcbtype, ...
-                                                  gt_subpath);
-        % Display the number of samples found for this configuration
-        fprintf('Found %3d samples.\n', data_size);
-        
-        % Store the results in the structure array
-        results(idx).expnum = current_expnum;      
-        results(idx).Cabletype = current_expcbtype;
-        results(idx).Numsamples = data_size;       
-        results(idx).data = data;                   
-        results(idx).gt = gt;                     
-        
-        % Increment the index for the next entry in the structure array
-        idx = idx + 1;
+            % Load magnitude, phase, and ground truth data
+            [data, gt, data_size] = load_lab_data(mainpath, ...
+                lab_exptype, ...
+                current_expnum, ...
+                current_expcbtype, ...
+                gt_subpath);
+            % Display the number of samples found for this configuration
+            fprintf('Found %3d samples.\n', data_size);
+
+            % Store the results in the structure array
+            results(idx).expnum = current_expnum;
+            results(idx).Cabletype = current_expcbtype;
+            results(idx).Numsamples = data_size;
+            results(idx).data = data;
+            results(idx).gt = gt;
+
+            % Increment the index for the next entry in the structure array
+            idx = idx + 1;
+        end
     end
 end
 end

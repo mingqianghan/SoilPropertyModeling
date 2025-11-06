@@ -19,7 +19,7 @@ function [data, gt, data_size] = load_field_data(year, mainpath, ...
 %                         used for data collection.
 %
 % Outputs:
-%   data - Struct containing magnitude, phase, and possibly other
+%   data - Struct containing magnitude, phase, date, and possibly other
 %                 sensor data (parity, RSSI, SNR) based on cable type.
 %   gt   - Struct containing ground truth data including
 %                 soil moisture (VWC), nitrogen levels (NO3, NH4),
@@ -74,6 +74,7 @@ data_size = length(data_label);
 % Initialize arrays for storing the data
 mag = zeros(data_size, fre_size);
 phs = zeros(data_size, fre_size);
+date = NaT(data_size, 1);
 
 if strcmp(Cable_Type, 'SC')
     parity = zeros(data_size, fre_size);
@@ -87,6 +88,9 @@ for i = 1:data_size
     parts = strsplit(data_label{i}, '_');
     month = sprintf('%02d', str2double(parts{1}));
     day = sprintf('%02d', str2double(parts{2}));
+
+    date(i) = datetime(sprintf('20%s-%02d-%02d', year, ...
+                       str2double(parts{1}), str2double(parts{2})));
 
     % Generate file pattern based on cable type and date
     if strcmp(Cable_Type, 'LC')
@@ -124,10 +128,10 @@ end
 
 % Create a data structure with loaded values, based on cable type
 if strcmp(Cable_Type, 'LC')
-    data = struct('mag', mag, 'phs', phs);
+    data = struct('mag', mag, 'phs', phs, 'date', date);
 else
-    data = struct('mag', mag, 'phs', phs, 'parity', parity, ...
-        'rssi', rssi, 'snr', snr);
+    data = struct('mag', mag, 'phs', phs, 'date', date, ...
+                  'parity', parity, 'rssi', rssi, 'snr', snr);
 end
 
 end

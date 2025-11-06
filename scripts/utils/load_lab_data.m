@@ -75,11 +75,29 @@ elseif strcmp(lab_exptype, 'Nitrogen')
     gt.NO3 = gt_data.("NO3 (ppm)")(positions, :);
     gt.NH4 = gt_data.("NH4 (ppm)")(positions, :);
     gt.totN = gt_data.("Total N (%)")(positions, :);
+    gt.O_NO3 = gt_data.("O_NO3 (ppm)")(positions, :);
+    gt.O_NH4 = gt_data.("O_NH4 (ppm)")(positions, :);
+    gt.O_totN = gt_data.("O_Total N (%)")(positions, :);
 
     % Generate text filenames based on both water content and urea levels.
     txtfilename = arrayfun(@(wc, urea) ...
                            sprintf('W%02dU%02d.txt', wc*100, urea), ...
                            gt.WC, gt.Urea, 'UniformOutput', false);
+
+    gt.WC = gt_data.("WC_Prepared (g_g)")(positions, :) * bulk_density;
+elseif strcmp(lab_exptype, 'NH4NO3')
+    % If the experiment type is 'Nitrogen', get the nitrogen-related data.
+    gt.WC = gt_data.("WC_Prepared (g_g)")(positions, :);
+    gt.NH4NO3 = gt_data.("NH4NO3 Added (mg)")(positions, :);
+    gt.NO3 = gt_data.("NO3 (ppm)")(positions, :);
+    gt.NH4 = gt_data.("NH4 (ppm)")(positions, :);
+    gt.O_NO3 = gt_data.("O_NO3 (ppm)")(positions, :);
+    gt.O_NH4 = gt_data.("O_NH4 (ppm)")(positions, :);
+
+    % Generate text filenames based on both water content and urea levels.
+    txtfilename = arrayfun(@(wc, NO3NH4) ...
+                           sprintf('W%02dN%02d.txt', wc*100, NO3NH4), ...
+                           gt.WC, gt.NH4NO3, 'UniformOutput', false);
 
     gt.WC = gt_data.("WC_Prepared (g_g)")(positions, :) * bulk_density;
 elseif strcmp(lab_exptype, 'WC_Bending')

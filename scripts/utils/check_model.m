@@ -1,6 +1,6 @@
 function write_data = check_model(results_file_path, ...
                                   full_results_path, ...
-                                  model_name)
+                                  model_name, fs_method)
 % -------------------------------------------------------------------------
 % This function checks if the model exists in the results file, 
 % and appends the model if it's new.
@@ -31,6 +31,9 @@ function write_data = check_model(results_file_path, ...
 % Date: 09-20-24
 % -------------------------------------------------------------------------
 
+fs_path = fullfile(results_file_path, strcat(fs_method, '_scores.csv'));
+write_data.fs = ~isfile(fs_path);
+
 % Ensure the results directory exists
 if ~isfolder(results_file_path)
     % If directory does not exist, create it
@@ -55,10 +58,10 @@ else
 end
 
 % Check if the specified model is already in the file
-write_data = ~ismember(model_name, existing_models.Models);
+write_data.performance = ~ismember(model_name, existing_models.Models);
 
 % If the model is new, append it to the results file
-if write_data
+if write_data.performance
     writematrix(model_name, full_results_path, 'WriteMode', 'append');
 end
 end

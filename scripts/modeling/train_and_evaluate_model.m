@@ -1,3 +1,4 @@
+
 function [mdl, train_scores, val_scores] = train_and_evaluate_model( ...
           rg_model, train_x, train_y, val_x, val_y, n_fea, OptParams)
 % -------------------------------------------------------------------------
@@ -29,9 +30,14 @@ switch rg_model
 
     case 'ANN'  % Artificial Neural Network
         if OptParams
-            fixed_params = {'Activations', 'relu', 'Standardize', true};
-            param_sets = {'LayerSizes', [2, 4, 6]; ...
-                'Lambda', [0.01, 0.001]};
+            fixed_params = {'Standardize', true;};
+            param_sets = {'LayerSizes', 1:9; ...
+                'Lambda',  [1e-5, 1e-4, 0.001, 0.01, 0.1, 1];
+                'Activations', {'relu', 'tanh', 'sigmoid'};
+                'LayerWeightsInitializer', {'glorot','he'};};
+            % param_sets = {'LayerSizes', 1; ...
+            %     'Lambda',  [1e-5];
+            %      'Activations', {'relu'};};
             [mdl, train_scores, val_scores] = train_model( ...
                 @fitrnet, train_x, train_y, val_x, val_y, ...
                 param_sets, fixed_params);
@@ -44,16 +50,25 @@ switch rg_model
             [train_scores, val_scores] = evaluate_model( ...
                 mdl, train_x, train_y, val_x, val_y);
         end
+    case 'ANN_v2'
+        [mdl, train_scores, val_scores]= ann_model(train_x, train_y, val_x, val_y);
 
     case 'SVM'  % Support Vector Machine
         if OptParams
-            fixed_params = {'KernelScale', 'auto'};
-            param_sets = {'BoxConstraint', [0.1, 1, 10]; ...
-                'Epsilon', [0.01, 0.1, 1]; ...
-                'KernelFunction', {'linear', 'gaussian'}};
-            [mdl, train_scores, val_scores] = train_model( ...
-                @fitrsvm, train_x, train_y, val_x, val_y, ...
-                param_sets, fixed_params);
+            set(0,'DefaultFigureVisible','off')
+            fixed_params = {};
+            param_sets = {'OptimizeHyperparameters', {'all'}, ...
+              'HyperparameterOptimizationOptions', struct( ...
+              'Optimizer', 'bayesopt', ...
+              'MaxObjectiveEvaluations', 100, ...
+              'Kfold', 3)};
+            % param_sets = {'BoxConstraint', [0.1, 1, 10, 50, 100], ...
+            %     'Epsilon', [0.01, 0.1, 1, 1.5, 2], ...
+            %     'KernelFunction', {'linear', 'gaussian'}, ...
+            %     'KernelScale', {0.1, 1, 10, 'auto'}, ...
+            %     'Nu', [0.1, 0.5, 0.8], ...
+            %     'Standardize', {true, false} };
+            evalc('[mdl, train_scores, val_scores] = train_model(@fitrsvm, train_x, train_y, val_x, val_y, param_sets, fixed_params);');
         else
             mdl = fitrsvm(train_x, train_y, ...
                   'KernelFunction', 'gaussian', ...
@@ -135,7 +150,10 @@ for i = 1:size(param_combinations, 1)
     % Set random seed for each training iteration
     % to ensure reproducibility
     rng(3453);
+
+    warnState = warning('off', 'all');
     mdl = train_func(train_x, train_y, params{:}, fixed_params{:});
+    warning(warnState);
 
     [train_scores, val_scores] = evaluate_model( ...
         mdl, train_x, train_y, val_x, val_y);
@@ -238,4 +256,108 @@ for n_comp = 1:n_fea
         % best_mdl.n_comp = n_comp;
     end
 end
+end
+
+
+function [best_mdl, best_train_scores, best_val_scores] = ann_model(train_x, train_y, val_x, val_y)
+
+rng(3453);
+
+[train_x_S, scaleSettings] = mapminmax(train_x');
+val_x_S =  mapminmax('apply', val_x', scaleSettings);
+
+% Combine training and validation data for training and record indices
+all_x = [train_x_S, val_x_S];
+all_y = [train_y', val_y'];
+nTrain = size(train_x, 2);
+nVal   = size(val_x, 2);
+
+% Define hidden layer configurations to test
+hiddenLayerConfigs = {2, 4, 6, 8, [2 2], [2 3], [3 3]};
+% hiddenLayerConfigs = {2, 4, 6};
+% training function:
+trainingFunctions = {'trainlm', 'trainscg', 'traingd'};
+% trainingFunctions = {'trainlm','trainscg'};
+% Regularization coefficients to test (helps control overfitting)
+regularization_list = [0, 0.01, 0.03, 0.05, 0.1, 0.3, 0.5];
+activationFunctions = {'tansig', 'logsig', 'poslin', 'purelin'};  % Activation functions for hidden layers
+learningRates = [0.0001, 0.001, 0.01, 0.1];
+
+best_val_rmse = inf;
+best_train_scores = struct('rmse', inf, 'mae', inf, 'rsquare', -inf);
+best_val_scores = struct('rmse', inf, 'mae', inf, 'rsquare', -inf);
+best_net = [];
+
+
+for tf = 1:length(trainingFunctions)
+    trainFcn = trainingFunctions{tf};
+
+    for lr = 1:length(learningRates)
+        lr_val = learningRates(lr);
+
+        % Skip unnecessary learning rates for trainlm
+        if strcmp(trainFcn, 'trainlm') && lr_val ~= learningRates(1)
+            continue;
+        end
+
+        for hl = 1:length(hiddenLayerConfigs)
+            config = hiddenLayerConfigs{hl};
+            for reg = 1:length(regularization_list)
+                reg_val = regularization_list(reg);
+                for af = 1:length(activationFunctions)
+                    actFunc = activationFunctions{af};
+
+                    % Create a feedforward network with the current hyperparameters
+                    net = feedforwardnet(config, trainFcn);
+
+                    % Set activation functions for each hidden layer (excluding output layer)
+                    for i = 1:(length(net.layers)-1)
+                        net.layers{i}.transferFcn = actFunc;
+                    end
+
+                    % For regression, set output layer transfer function to 'purelin'
+                    net.layers{end}.transferFcn = 'purelin';
+
+                    % Training parameters
+                    net.trainParam.epochs = 100;
+                    net.trainParam.showWindow = false;
+                    if isfield(net.trainParam, 'lr')  % Only set if applicable
+                        net.trainParam.lr = lr_val;
+                    end
+                    net.performParam.regularization = reg_val;
+
+                    % Explicitly define training and validation indices
+                    net.divideFcn = 'divideind';
+                    net.divideParam.trainInd = 1:nTrain;
+                    net.divideParam.valInd = nTrain + (1:nVal);
+                    net.divideParam.testInd = [];
+
+                    % Train the network
+                    [net, tr] = train(net, all_x, all_y);
+
+                    % Evaluate performance on the validation set using mean squared error
+                    val_pred = net(val_x_S);
+                    val_scores = model_evaluation(val_pred, val_y');
+
+                    train_pred = net(train_x_S);
+                    train_scores = model_evaluation(train_pred, train_y');
+
+
+                    % Update best network if current configuration improves performance
+                    if val_scores.rmse < best_val_rmse && train_scores.rsquare >= val_scores.rsquare
+                        best_val_rmse = val_scores.rmse;
+                        best_net = net;
+                        best_train_scores = train_scores;
+                        best_val_scores = val_scores;
+                    end
+                end
+            end
+        end  % End Regularization loop
+    end  % End Hidden Layers loop
+end  % End Training Functions loop
+
+% Save scaling settings in the best network for future use (e.g., test data)
+best_net.userdata.scaleSettings = scaleSettings;
+best_mdl = best_net;
+
 end
