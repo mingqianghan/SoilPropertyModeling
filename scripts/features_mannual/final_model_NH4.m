@@ -1,60 +1,79 @@
 clc
 clear
 close all
-VWC_feature_file= "C:\Users\mingqiang\OneDrive - Kansas State University\K-state Research\Soil sensor\Models\SoilAnalysis\scripts\VIPfeatures\VIP_frequencies_VWC_Combined.xlsx";
+VWC_feature_file= "F:\run_code_v5\SoilAnalysis\scripts\features_mannual\VIP_frequencies_NH4_Combined_new.xlsx";
 
 Predictors = {'Mag', 'Phs', 'MaP'};
 fs_param.name  = 'SPA';
-split_ratio1 =  0.5;   % adjust for different validation and test ratio
-split_ratio2 = 0;
+split_ratio1 =  0.7;   % adjust for different validation and test ratio
+split_ratio2 = 0.15;
 
 rg_model = 'ANN';
 OptParams = true;
 
-SPA_th = 5;    % adjust this threshold for varaibles sort using SPA
+SPA_th1 = 4;   
+SPA_th2 = 10; 
 
 feature_mag = readtable(VWC_feature_file, 'Sheet','Mag');
 feature_mag = sortrows(feature_mag,"Count","descend");
-idxMagHigh = feature_mag.Count>SPA_th;
+idxMagHigh = feature_mag.Count>SPA_th2;
+idxMagMedium = feature_mag.Count>SPA_th1 & feature_mag.Count<=SPA_th2;
+idxMagLow = feature_mag.Count <= SPA_th1;
+
 highMagValues = feature_mag.Value(idxMagHigh);
-otherMagValues = feature_mag.Value(~idxMagHigh);
+mediumMagValues = feature_mag.Value(idxMagMedium);
+lowMagValues = feature_mag.Value(idxMagLow);
 
 feature_phs = readtable(VWC_feature_file, 'Sheet','Phs');
 feature_phs = sortrows(feature_phs,"Count","descend");
-idxPhsHigh = feature_phs.Count>SPA_th;
+idxPhsHigh = feature_phs.Count>SPA_th2;
+idxPhsMedium = feature_phs.Count>SPA_th1 & feature_phs.Count<=SPA_th2;
+idxPhsLow = feature_phs.Count <= SPA_th1;
+
 highPhsValues = feature_phs.Value(idxPhsHigh);
-otherPhsValues = feature_phs.Value(~idxPhsHigh);
+mediumPhsValues = feature_phs.Value(idxPhsMedium);
+lowPhsValues = feature_phs.Value(idxPhsLow);
 
 
 vals = [feature_mag.Value;  feature_phs.Value + 1101];
 cnts = [feature_mag.Count;  feature_phs.Count];
 feature_map = table( vals, cnts, 'VariableNames', {'Value','Count'} );
 feature_map = sortrows(feature_map,"Count","descend");
-idxMaPHigh = feature_map.Count>SPA_th;
+idxMaPHigh = feature_map.Count>SPA_th2;
+idxMaPMedium = feature_map.Count>SPA_th1 & feature_map.Count<=SPA_th2;
+idxMaPLow = feature_map.Count <= SPA_th1;
+
 highMaPValues = feature_map.Value(idxMaPHigh);
-otherMaPValues = feature_map.Value(~idxMaPHigh);
+mediumMaPValues = feature_map.Value(idxMaPMedium);
+lowMaPValues = feature_map.Value(idxMaPLow);
 
 
 % lab data for training 
 mainpath = 'data';
-WC_gt_subpath = 'Lab\WC_Calibration.xlsx';
-lab_data_W_exp = access_all_lab_data(mainpath, 'WC', WC_gt_subpath);
 
-matches = arrayfun(@(x) strcmp(x.Cabletype, 'LC'), lab_data_W_exp);
-lab_data_W_exp = lab_data_W_exp(matches);
+% Urea experiment
+Urea_gt_subpath = 'Lab\Nitrogen_Calibration.xlsx';
+lab_data_N_exp_Urea = access_all_lab_data(mainpath, 'Nitrogen', Urea_gt_subpath);
 
-N_gt_subpath = 'Lab\Nitrogen_Calibration.xlsx';
-lab_data_N_exp = access_all_lab_data(mainpath, 'Nitrogen', N_gt_subpath);
+matches = arrayfun(@(x) strcmp(x.Cabletype, 'LC') && ...
+                          (strcmp(x.expnum, 'R2') || strcmp(x.expnum, 'R3')), ...
+                   lab_data_N_exp_Urea);
+lab_data_N_exp_Urea = lab_data_N_exp_Urea(matches);
 
-matches = arrayfun(@(x) strcmp(x.Cabletype, 'LC'), lab_data_N_exp);
-lab_data_N_exp = lab_data_N_exp(matches);
+% NH4NO3 experiment
+NH4NO3_gt_subpath = 'Lab\Nitrogen_Calibration_NH4NO3.xlsx';
+lab_data_N_exp_NH4NO3 = access_all_lab_data(mainpath, 'NH4NO3', NH4NO3_gt_subpath);
+
+matches = arrayfun(@(x) strcmp(x.Cabletype, 'LC'), lab_data_N_exp_NH4NO3);
+lab_data_N_exp_NH4NO3 = lab_data_N_exp_NH4NO3(matches);
+
 
 % field data for validation and test
 year = '24';
 mainpath = 'data\UG nodes';
 field_data = access_all_field_data(year, mainpath);
 
-output_folderPath = fullfile('VIP_results', 'VWC_50');
+output_folderPath = fullfile('VIP_results_new', 'NH4_R2_R3_nonoutliers(allcombined100)_cat_70_15_15_new');
 if ~exist(output_folderPath, 'dir')
     mkdir(output_folderPath);
 end
@@ -63,40 +82,73 @@ end
 for i = 1:length(Predictors)
     p = Predictors{i};
 
-    [data_x_W_exp, data_y_W_exp, label_W] = extract_and_clean_data(lab_data_W_exp, 'lab', p, 'WC_Calculated');
-    [data_x_N_exp, data_y_N_exp, label_N] = extract_and_clean_data(lab_data_N_exp, 'lab', p, 'WC');
+    [data_x_exp_Urea, data_y_exp_Urea, label_Urea] = extract_and_clean_data(lab_data_N_exp_Urea, 'lab', p, 'NH4');
+    [data_x_exp_NH4NO3, data_y_exp_NH4NO3, label_NH4NO3] = extract_and_clean_data(lab_data_N_exp_NH4NO3, 'lab', p, 'NH4');
 
-    label_W = categorical( strcat( string(label_W), "_W" ) );
-    label_N = categorical( strcat( string(label_N), "_N" ) );
-
-    train_x = [data_x_W_exp; data_x_N_exp];
-    train_y = [data_y_W_exp; data_y_N_exp];
-    train_label = [label_W; label_N];
+    label_Urea = categorical( strcat( string(label_Urea), "_Urea" ) );
+    label_NH4NO3 = categorical( strcat( string(label_NH4NO3), "_NH4NO3" ) );
 
     matches = arrayfun(@(x) strcmp(x.Cabletype, 'LC'), field_data);
-    [data_x_field, data_y_field, label] = extract_and_clean_data(field_data(matches), 'field', p, 'VWC');
-    [val_x, val_y, val_label, test_x, test_y, test_label, ~, ~, ~] = split_data(data_x_field, data_y_field, split_ratio1, split_ratio2, label, true);
+    [data_x_field, data_y_field, label] = extract_and_clean_data(field_data(matches), 'field', p, 'NH4');
+
+    all_x = [data_x_exp_Urea; data_x_exp_NH4NO3; data_x_field];
+    all_y = [data_y_exp_Urea; data_y_exp_NH4NO3; data_y_field];
+    all_label = [label_Urea; label_NH4NO3; label];
+
+    [train_x, train_y, train_label, val_x, val_y, val_label, test_x, test_y, test_label] = split_data(all_x, all_y, split_ratio1, split_ratio2, all_label, true);
+
+    catTrain = categorical(train_label, categories(train_label));
+    catTrain_dummy = dummyvar(catTrain);
+
+    catVal = categorical(val_label, categories(catTrain));
+    catVal_dummy = dummyvar(catVal);
+
+    catTest = categorical(test_label, categories(catTrain));
+    catTest_dummy = dummyvar(catTest);
+
+    catTrain_dummy = catTrain_dummy(:, 1:end-1);
+    catVal_dummy   = catVal_dummy(:, 1:end-1);
+    catTest_dummy = catTest_dummy(:, 1:end-1);
+
+
 
     if strcmp(p, 'Mag')
-        train_x_t = train_x(:, otherMagValues);
-        fs_param.max_var = length(otherMagValues);
-        score_idx = feature_selection(train_x_t, train_y, fs_param);
-        fea_seq = [highMagValues; otherMagValues(score_idx)];
+
+        train_x_t1 = train_x(:, lowMagValues);
+        fs_param.max_var = length(lowMagValues);
+        score_idx1 = feature_selection(train_x_t1, train_y, fs_param);
+
+        train_x_t2 = train_x(:, mediumMagValues);
+        fs_param.max_var = length(mediumMagValues);
+        score_idx2 = feature_selection(train_x_t2, train_y, fs_param);
+
+        fea_seq = [highMagValues; mediumMagValues(score_idx2); lowMagValues(score_idx1)];
+
     elseif strcmp(p, 'Phs')
-        train_x_t = train_x(:, otherPhsValues);
-        fs_param.max_var = length(otherPhsValues);
-        score_idx = feature_selection(train_x_t, train_y, fs_param);
-        fea_seq = [highPhsValues; otherPhsValues(score_idx)];
+        train_x_t1 = train_x(:, lowPhsValues);
+        fs_param.max_var = length(lowPhsValues);
+        score_idx1 = feature_selection(train_x_t1, train_y, fs_param);
+
+        train_x_t2 = train_x(:, mediumPhsValues);
+        fs_param.max_var = length(mediumPhsValues);
+        score_idx2 = feature_selection(train_x_t2, train_y, fs_param);
+
+        fea_seq = [highPhsValues; mediumPhsValues(score_idx2); lowPhsValues(score_idx1)];
     else
-        train_x_t = train_x(:, otherMaPValues);
-        fs_param.max_var = length(otherMaPValues);
-        score_idx = feature_selection(train_x_t, train_y, fs_param);
-        fea_seq = [highMaPValues; otherMaPValues(score_idx)];
+        train_x_t1 = train_x(:, lowMaPValues);
+        fs_param.max_var = length(lowMaPValues);
+        score_idx1 = feature_selection(train_x_t1, train_y, fs_param);
+
+        train_x_t2 = train_x(:, mediumMaPValues);
+        fs_param.max_var = length(mediumMaPValues);
+        score_idx2 = feature_selection(train_x_t2, train_y, fs_param);
+
+        fea_seq = [highMaPValues; mediumMaPValues(score_idx2); lowMaPValues(score_idx1)];
     end
 
     fprintf('\n-- Running model using (%s)--\n', p);
 
-    model_folderPath = fullfile('VIP_results', 'VWC_50', p);
+    model_folderPath = fullfile('VIP_results_new', 'NH4_R2_R3_nonoutliers(allcombined100)_cat_70_15_15_new', p);
     if ~exist(model_folderPath, 'dir')
         mkdir(model_folderPath);
     end
@@ -128,7 +180,12 @@ for i = 1:length(Predictors)
         train_x_c = train_x(:, fea_seq(1:j));
         val_x_c = val_x(:, fea_seq(1:j));
         test_x_c = test_x(:, fea_seq(1:j));
-        [mdl, train_scores, val_scores] = train_and_evaluate_model(rg_model, train_x_c, train_y, val_x_c, val_y, length(fea_seq), OptParams);
+
+        Xtrain = [train_x_c, catTrain_dummy];
+        Xval   = [val_x_c, catVal_dummy];
+        Xtest  = [test_x_c, catTest_dummy];
+
+        [mdl, train_scores, val_scores] = train_and_evaluate_model(rg_model, Xtrain, train_y, Xval, val_y, length(fea_seq), OptParams);
 
         %–– saveraw model ––
         modelFile = fullfile(model_folderPath, sprintf('model_%s_%03d.mat', p, j));
@@ -136,7 +193,7 @@ for i = 1:length(Predictors)
 
 
         % Prediction
-        yPred_test = predict(mdl, test_x_c);
+        yPred_test = predict(mdl, Xtest);
         test_scores = model_evaluation(yPred_test, test_y);
 
         if val_scores.rmse < best_val_rmse && ...
@@ -153,7 +210,7 @@ for i = 1:length(Predictors)
             Selected = 'Y';
         end
 
-        fprintf([...
+       fprintf([...
         'Progress: %d/%d | ' ...
         'Train: R2=%.2f, RMSE=%.2f, MAE=%.2f | ' ...
         'Val:   R2=%.2f, RMSE=%.2f, MAE=%.2f | ' ...
@@ -210,9 +267,9 @@ for i = 1:length(Predictors)
     bestFile = fullfile(output_folderPath, sprintf('best_model_%s.mat', p));
     save(bestFile, 'best_mdl');
 
-    yPred_train = predict(best_mdl.mdl, train_x(:, best_mdl.feature));
-    yPred_val = predict(best_mdl.mdl, val_x(:, best_mdl.feature));
-    yPred_test = predict(best_mdl.mdl, test_x(:, best_mdl.feature));
+    yPred_train = predict(best_mdl.mdl, [train_x(:, best_mdl.feature), catTrain_dummy]);
+    yPred_val = predict(best_mdl.mdl, [val_x(:, best_mdl.feature), catVal_dummy]);
+    yPred_test = predict(best_mdl.mdl, [test_x(:, best_mdl.feature), catTest_dummy]);
 
     nT = numel(train_y);
     nV = numel(val_y);
@@ -232,5 +289,3 @@ for i = 1:length(Predictors)
     writetable(T, outFile);
 
 end
-
-
