@@ -21,6 +21,7 @@ The workflow includes **two stages**:
 - `scripts/VIPfeatures` — run Stage 2 models and obtain final results  
 - `scripts/data_preprocessing` — dataset splitting and outlier removal  
 - `scripts/feature_selection` — implement feature selection methods  
+- `scripts/feature_mannual` — Implement models incorporating manually refined variables based on spectral inspection 
 - `scripts/modeling` — train models and evaluate results  
 - `scripts/tests` — train and test different datasets (run Stage 1 from here)  
 - `scripts/utils` — miscellaneous code for loading data, evaluation metrics, etc.  
