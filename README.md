@@ -16,7 +16,7 @@ The workflow includes **two stages**:
 1. **Stage 1:** Use multiple datasets from lab and field experiments for variable selection.  
 2. **Stage 2:** Use information from Stage 1 for soil property estimation and testing on field data.
 
-## Folders
+## 📂 Folders
 
 - `scripts/VIPfeatures` — run Stage 2 models and obtain final results  
 - `scripts/data_preprocessing` — dataset splitting and outlier removal  
